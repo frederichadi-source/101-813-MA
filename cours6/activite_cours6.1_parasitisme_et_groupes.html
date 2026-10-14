@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Activité 6.1 : Parasitisme et groupes d’organismes</title>
+<style>
+  :root{
+    --navy:#123a5c; --navy-dark:#0b2740; --blue:#2f7bb0; --blue-light:#eaf3fa;
+    --teal:#2f8f8a; --bg:#f5f8fb; --card-bg:#ffffff; --border:#dbe6ee; --text:#1c2b36;
+    --ok:#2e7d4f; --ok-bg:#e6f6ec; --bad:#b3372c; --bad-bg:#fbeae8;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:"Segoe UI", Arial, sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0 0 70px 0;line-height:1.55;}
+  header{background:linear-gradient(135deg,var(--navy-dark),var(--blue));color:white;padding:34px 20px;text-align:center;}
+  header h1{margin:0 0 6px 0;font-size:1.8em;}
+  header p{margin:0;opacity:0.92;}
+  .container{max-width:1150px;margin:0 auto;padding:20px;}
+  h2.section-title{margin-top:55px;padding-bottom:8px;border-bottom:3px solid var(--blue);color:var(--navy);}
+  .instructions{background:var(--blue-light);border:1px solid #cfe1ee;border-radius:8px;padding:12px 18px;margin-top:14px;font-size:0.95em;}
+  .instructions b{color:var(--navy);}
+  .intro{background:#fff;border:1px solid var(--border);border-left:5px solid var(--teal);border-radius:8px;padding:14px 18px;margin-top:18px;}
+  .intro ul{margin:6px 0 0 0;padding-left:20px;}
+
+  table.key{width:100%;border-collapse:collapse;margin-top:18px;font-size:0.92em;background:var(--card-bg);}
+  table.key th{background:var(--navy);color:white;padding:9px 10px;text-align:left;}
+  table.key td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+  table.key tr:nth-child(even) td{background:#f7fafc;}
+  table.key ul{margin:0;padding-left:18px;}
+
+  .jeu-wrap{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:16px;}
+  .progress-line{margin-top:14px;font-weight:600;color:var(--navy);}
+  .success-msg{display:none;margin-top:16px;background:var(--ok-bg);border:1px solid #b7dfc4;color:#1e5c37;padding:12px 16px;border-radius:8px;font-weight:600;}
+  .success-msg.partial{background:var(--blue-light);border-color:#cfe1ee;color:var(--navy);}
+  .sel-bar{position:sticky;bottom:8px;background:var(--navy);color:#fff;padding:8px 14px;border-radius:8px;font-size:0.9em;margin-top:10px;box-shadow:0 2px 8px rgba(0,0,0,.25);z-index:5;}
+  .hint-line{min-height:24px;margin:8px 0;font-size:0.92em;color:var(--bad);font-weight:600;}
+
+  /* ---- Tri de cartes ---- */
+  .piece-bank{display:flex;flex-wrap:wrap;gap:10px;padding:14px;background:#f5f8fb;border:1px dashed #bcd0e0;border-radius:8px;margin-bottom:20px;min-height:70px;}
+  .piece{background:white;border:2px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;user-select:none;font-size:0.88em;max-width:310px;transition:transform .15s, box-shadow .15s;}
+  .piece:hover{border-color:var(--blue);box-shadow:0 2px 6px rgba(0,0,0,0.12);}
+  .piece.selected{border-color:var(--blue);background:var(--blue-light);box-shadow:0 0 0 3px rgba(47,123,176,0.25);transform:translateY(-2px);}
+  .bins{display:grid;gap:14px;}
+  .bin{background:#fbfdff;border:2px solid var(--border);border-radius:10px;padding:12px;min-height:160px;cursor:pointer;}
+  .bin:hover{border-color:var(--blue);}
+  .bin h4{margin:0 0 10px 0;text-align:center;color:var(--navy);border-bottom:2px solid var(--blue);padding-bottom:6px;font-size:0.98em;}
+  .bin.shake{animation:shake .35s;}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+  .placed-piece{display:block;background:var(--ok-bg);border:1px solid #b7dfc4;border-radius:6px;padding:4px 8px;margin:4px 0;font-size:0.82em;color:#1e5c37;}
+
+  /* ---- Ordre ---- */
+  .order-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .order-box{background:#fbfdff;border:2px solid var(--border);border-radius:10px;padding:12px;min-height:120px;}
+  .order-box h4{margin:0 0 10px 0;color:var(--navy);border-bottom:2px solid var(--blue);padding-bottom:6px;}
+  .order-box.shake{animation:shake .35s;}
+  .step-btn{display:block;width:100%;text-align:left;font:inherit;font-size:0.9em;background:white;border:2px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:8px;cursor:pointer;}
+  .step-btn:hover{border-color:var(--blue);}
+  ol.ordered{margin:0;padding-left:22px;}
+  ol.ordered li{background:var(--ok-bg);border:1px solid #b7dfc4;border-radius:6px;padding:6px 10px;margin:6px 0 6px -2px;font-size:0.9em;color:#1e5c37;}
+
+  /* ---- Questions ---- */
+  .qcard{background:#fbfdff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .qnum{font-size:0.75em;text-transform:uppercase;letter-spacing:.05em;color:#6b7c88;font-weight:700;}
+  .qtext{font-weight:600;color:var(--navy);margin:2px 0 6px 0;}
+  .qcond{background:#fff;border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:6px;padding:8px 12px;margin:6px 0 10px 0;font-size:0.93em;}
+  .qopts{display:flex;flex-wrap:wrap;gap:8px;}
+  .opt{font:inherit;font-size:0.9em;background:white;border:2px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;text-align:left;}
+  .opt:hover:not(:disabled){border-color:var(--blue);}
+  .opt.right{background:var(--ok-bg);border-color:var(--ok);color:#1e5c37;font-weight:600;}
+  .opt.wrong{background:var(--bad-bg);border-color:var(--bad);color:var(--bad);}
+  .opt.picked{background:var(--blue-light);border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,123,176,0.25);}
+  .opt:disabled{cursor:default;opacity:0.75;}
+  .opt.right:disabled,.opt.wrong:disabled{opacity:1;}
+  .qfb{display:none;margin-top:10px;padding:8px 12px;border-radius:6px;font-size:0.9em;}
+  .qfb.show{display:block;}
+  .qfb.ok{background:var(--ok-bg);border:1px solid #b7dfc4;color:#1e5c37;}
+  .qfb.bad{background:var(--bad-bg);border:1px solid #efc3be;color:var(--bad);}
+
+  .btn{display:inline-block;margin-top:16px;background:var(--navy);color:white;border:none;padding:10px 22px;border-radius:6px;font-size:0.95em;font-weight:600;cursor:pointer;}
+  .btn:hover{background:var(--blue);}
+  .btn:disabled{opacity:0.45;cursor:not-allowed;}
+  .btn:disabled:hover{background:var(--navy);}
+
+  /* ---- Corrigés verrouillés ---- */
+  .answer-key{margin-top:50px;border:2px dashed var(--teal);border-radius:10px;padding:20px;background:#f0faf8;}
+  .answer-key h2{color:var(--teal);border-bottom:2px solid var(--teal);margin-top:0;}
+  .hidden{display:none !important;}
+  .toggle-btn{display:inline-block;margin-top:15px;margin-right:10px;padding:8px 16px;background:var(--teal);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.95em;}
+  .toggle-btn.secondary{background:var(--navy);}
+  .lock-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;background:#e6f6f4;border:1px dashed var(--teal);border-radius:8px;padding:14px 18px;color:var(--teal);font-weight:600;}
+  .unlock-form{display:flex;gap:8px;align-items:center;}
+  .unlock-form input[type="password"]{border:1px solid #a9d8d3;border-radius:6px;padding:6px 10px;font-size:0.95em;min-width:160px;}
+  .unlock-form .toggle-btn{margin:0;}
+  .pwd-hint{color:#e6f6f4;background:#e6f6f4;user-select:all;-webkit-user-select:all;font-size:0.85em;padding:2px 8px;border-radius:4px;cursor:text;}
+  .pwd-hint::selection{background:#39383a;color:#fff;}
+  .pwd-hint::-moz-selection{background:#39383a;color:#fff;}
+  .relock-btn{float:right;font-size:0.8em;padding:5px 12px;}
+  .note-small{font-size:0.85em;color:#888;margin-top:10px;}
+
+  @media (max-width:800px){
+    .bins{grid-template-columns:1fr !important;}
+    .order-cols{grid-template-columns:1fr;}
+    header h1{font-size:1.4em;}
+  }
+</style>
+<style>
+#sn-bar{font:14px/1.4 "Segoe UI",Arial,sans-serif;background:#1d3a52;color:#fff;margin:0;padding:8px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;box-sizing:border-box;position:relative;z-index:30;}
+#sn-bar *{box-sizing:border-box;}
+#sn-bar a{color:#fff;text-decoration:none;font-weight:600;padding:5px 11px;border-radius:7px;background:rgba(255,255,255,.12);white-space:nowrap;}
+#sn-bar a:hover{background:rgba(255,255,255,.26);}
+#sn-bar .sn-cur{opacity:.85;font-size:.92em;margin-right:auto;}
+#sn-bar details{position:relative;}
+#sn-bar summary{cursor:pointer;list-style:none;font-weight:600;padding:5px 11px;border-radius:7px;background:rgba(255,255,255,.12);user-select:none;}
+#sn-bar summary::-webkit-details-marker{display:none;}
+#sn-bar summary:hover,#sn-bar details[open] summary{background:rgba(255,255,255,.26);}
+#sn-bar .sn-menu{position:absolute;right:0;top:calc(100% + 6px);width:min(430px,92vw);max-height:75vh;overflow:auto;background:#fff;color:#1d2b36;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);padding:8px 0;z-index:40;}
+#sn-bar .sn-menu a{display:block;background:none;color:#1d3a52;border-radius:0;padding:6px 16px;white-space:normal;font-weight:500;}
+#sn-bar .sn-menu a:hover{background:#e8f1f8;}
+#sn-bar .sn-menu a.on{background:#dcebf6;font-weight:700;}
+#sn-bar .sn-menu .sn-co{margin:6px 0 8px 12px;border-left:6px solid var(--cc,#5b7183);}
+#sn-bar .sn-menu b{display:block;padding:4px 16px 2px;color:var(--cn,#5b7183);font-size:.8em;text-transform:uppercase;letter-spacing:.04em;}
+#sn-bar .sn-menu .sn-co a:hover{background:var(--cl,#e8f1f8);}
+#sn-bar .sn-menu .sn-co a.on{background:var(--cl,#dcebf6);font-weight:700;}
+#sn-bar .sn-menu small{display:inline-block;margin-right:8px;background:#2a9d8f;color:#fff;border-radius:5px;padding:1px 8px;text-align:center;font-size:.8em;font-weight:600;white-space:nowrap;}
+#sn-bar .sn-menu small.sn-nt{background:#1d3a52;}
+#sn-bar .sn-menu small.sn-lab{background:#8a5a9a;}
+@media print{#sn-bar{display:none !important;}}
+</style>
+</head>
+<body>
+<div id="sn-bar" style="background:#611211;border-bottom:5px solid #c32423"><span class="sn-cur">101-813-MA · Activité 6.1</span><a href="../index.html">← Accueil</a><a href="../cours6/notes.html">Notes du cours 6</a><details><summary>☰ Tout le site</summary><div class="sn-menu"><div class="sn-co" style="--cc:#e0d8b8;--co:#1c2b36;--cn:#564e2e;--cd:#35311d;--cl:#f6f5ee"><b>Cours 1 · Introduction à la biologie</b><a href="../cours1/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours1/activite_cours1.1_microorganismes.html"><small>Activité 1.1</small>Diversité des microorganismes</a></div><div class="sn-co" style="--cc:#0070c0;--co:#ffffff;--cn:#00528d;--cd:#003357;--cl:#ebf3f9"><b>Cours 2 · Les molécules du vivant</b><a href="../cours2/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours2/activite_cours2.1_macronutriments.html"><small>Activité 2.1</small>Glucides, lipides et protéines</a></div><div class="sn-co" style="--cc:#b3a2ba;--co:#1c2b36;--cn:#5a4861;--cd:#382d3c;--cl:#f3f0f4"><b>Cours 3 · Le modèle cellulaire et l'écologie microbienne</b><a href="../cours3/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a></div><div class="sn-co" style="--cc:#166082;--co:#ffffff;--cn:#135371;--cd:#0c3446;--cl:#ebf5f9"><b>Cours 4 · Les bactéries</b><a href="../cours4/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours4/activite_cours4.1_bacteries.html"><small>Activité 4.1</small>Les bactéries : formes et pathogènes alimentaires</a></div><div class="sn-co" style="--cc:#2d9d9f;--co:#ffffff;--cn:#195657;--cd:#0f3636;--cl:#ebf9f9"><b>Cours 5 · Les mycètes</b><a href="../cours5/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours5/activite_cours5.1_qui_pousse_ou.html"><small>Activité 5.1</small>Qui pousse où ? pH et température</a><a href="../cours5/activite_cours5.2_bacteries_vs_mycetes.html"><small>Activité 5.2</small>Bactéries ou mycètes ?</a><a href="../cours5/activite_cours5.3_enquete.html"><small>Activité 5.3</small>Enquête : aliment altéré ou intoxication ?</a></div><div class="sn-co" style="--cc:#c32423;--co:#ffffff;--cn:#9c1d1c;--cd:#611211;--cl:#f9ebeb"><b>Cours 6 · Les virus et autres parasites</b><a href="../cours6/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours6/activite_cours6.1_parasitisme_et_groupes.html" class="on"><small>Activité 6.1</small>Parasitisme et groupes d'organismes</a><a href="../cours6/activite_cours6.2_virus.html"><small>Activité 6.2</small>Les virus, de la cellule à l'assiette</a><a href="../cours6/activite_cours6.3_vers_parasites.html"><small>Activité 6.3</small>Les vers parasites, de l'assiette à l'organisme</a></div><div class="sn-co" style="--cc:#d9822b;--co:#1c2b36;--cn:#754515;--cd:#482b0d;--cl:#f9f2eb"><b>Cours 7 · La qualité : échantillonnage et normes</b><a href="../cours7/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours7/activite_cours7.1_danger_et_prelevement.html"><small>Activité 7.1</small>Danger, échantillon et prélèvement</a><a href="../cours7/activite_cours7.2_les_normes.html"><small>Activité 7.2</small>Lire une norme microbiologique</a><a href="../cours7/activite_cours7.3_dilutions.html"><small>Activité 7.3</small>Comprendre les dilutions</a></div><div class="sn-co" style="--cc:#5b8c3e;--co:#ffffff;--cn:#395727;--cd:#233618;--cl:#f1f7ed"><b>Cours 8 · La qualité : indicateurs et identification</b><a href="../cours8/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours8/activite_cours8.1_indicateurs.html"><small>Activité 8.1</small>Les organismes indicateurs</a><a href="../cours8/activite_cours8.2_identifier.html"><small>Activité 8.2</small>Identifier un microorganisme</a></div><div class="sn-co" style="--cc:#8a5a9a;--co:#fff;--cn:#6d4479;--cd:#6d4479;--cl:#f3ecf6"><b>🔬 Laboratoires</b><a href="../labos/fiches-labos.html"><small class="sn-lab">🧪 Labos</small>Fiches de mise en contexte des laboratoires</a></div></div></details></div>
+
+
+<header>
+  <h1>Activité 6.1 : parasitisme et groupes d’organismes</h1>
+  <p>101-813-MA — Introduction à la microbiologie alimentaire</p>
+</header>
+
+<div class="container">
+  <div class="intro"><b>Durée : environ 25 minutes.</b> Trois jeux à faire <b>dans l’ordre</b>, sans quitter la page : le vocabulaire du parasitisme, le tri des groupes d’organismes, puis un vrai ou faux de comparaison. Les réponses se trouvent dans les diapositives d’aujourd’hui (vocabulaire et tableau « Diversité des parasites ») et dans vos notes des cours 4 et 5. Les protozoaires seront vus plus tard : ils ne sont pas dans cette activité.</div>
+  <div id="app"></div>
+</div>
+
+<script>
+const DATA = {"store": "c6A_unlock_", "games": [{"type": "quiz", "title": "Les six mots du parasitisme", "pwd": "mots6a", "instr": "Dans chaque situation, choisissez le terme qui correspond à ce qui est <u>souligné<\/u>. Les six mots sont les mêmes pour toutes les questions : <b>Parasitologie, Parasite, Hôte, Parasitisme, Réservoir, Vecteur<\/b>. Cliquez sur « Valider » : les réponses fausses sont marquées en rouge, sans la bonne réponse. Corrigez-les, puis validez à nouveau.", "label": "Situation", "fixedOrder": true, "items": [{"c": "Une équipe de santé publique identifie au microscope un ver trouvé dans un poisson, puis rédige un rapport sur la maladie qu’il peut causer chez l’humain.", "q": "Comment s’appelle la <u>science<\/u> pratiquée par cette équipe ?", "o": ["Parasitologie", "Parasite", "Hôte", "Parasitisme", "Réservoir", "Vecteur"], "a": 0, "e": "Parasitologie : science qui étudie les parasites et les maladies qu’ils causent (diapo 3).", "h1": "la partie 1 des notes du Cours 6 (sections 1.1 et 1.2)", "h2": "Pensez au nom que l’on donne à l’étude scientifique d’un groupe d’organismes et des maladies qu’ils causent."}, {"c": "Une chercheuse décrit le cycle de vie d’un ténia et les symptômes qu’il provoque chez les personnes infectées.", "q": "À quelle <u>discipline scientifique<\/u> appartient son travail ?", "o": ["Parasitologie", "Parasite", "Hôte", "Parasitisme", "Réservoir", "Vecteur"], "a": 0, "e": "Étudier les parasites et les maladies qu’ils causent, c’est faire de la parasitologie (diapo 3).", "h1": "la partie 1 des notes du Cours 6 (sections 1.1 et 1.2)", "h2": "Demandez-vous quel domaine de la science s’intéresse à la fois à la biologie de ces organismes et aux maladies qui en résultent."}, {"c": "Dans un lac, une larve se nourrit aux dépens d’un brochet, sans rien lui apporter.", "q": "Que représente la <u>larve<\/u> ?", "o": ["Parasitologie", "Parasite", "Hôte", "Parasitisme", "Réservoir", "Vecteur"], "a": 1, "e": "Parasite : organisme qui vit aux dépens d’un autre organisme, son hôte (diapo 3).", "h1": "la partie 1 des notes du Cours 6 (sections 1.1 et 1.2)", "h2": "Demandez-vous lequel des deux êtres vivants se nourrit aux dépens de l’autre : c’est ce rôle qu’il faut nommer."}, {"c": "Un ver plat s’installe dans l’intestin d’un chien et absorbe une partie de ses aliments digérés.", "q": "Que représente le <u>ver<\/u> ?", "o": ["Parasitologie", "Parasite", "Hôte", "Parasitisme", "Réservoir", "Vecteur"], "a": 1, "e": "Le ver vit aux dépens du chien : c’est le parasite (diapo 3).", "h1": "la partie 1 des notes du Cours 6 (sections 1.1 et 1.2)", "h2": "Pensez à ce que le ver tire de sa présence dans l’intestin du chien, et au rôle que cela lui donne."}, {"c": "Après un repas contaminé, un employé de cuisine tombe malade : on retrouve un ver adulte dans son intestin, où il trouve gîte et nourriture.", "q": "Que représente l’<u>employé<\/u> ?", "o": ["Parasitologie", "Parasite", "Hôte", "Parasitisme", "Réservoir", "Vecteur"], "a": 2, "e": "Hôte : organisme qui héberge et nourrit un parasite (diapo 3).", "h1": "la partie 1 des notes du Cours 6 (sections 1.1 et 1.2)", "h2": "Demandez-vous qui, dans cette situation, loge et nourrit le ver adulte, et quel nom on donne à ce rôle."}, {"c": "Dans la chair d’un saumon vivent des larves de ver qui y puisent ce dont elles ont besoin pour se nourrir.", "q": "Que représente le <u>saumon<\/u> dans cette relation ?", "o": ["Parasitologie", "Parasite", "Hôte", "Parasitisme", "Réservoir", "Vecteur"], "a": 2, "e": "Le saumon héberge et nourrit les larves : c’est leur hôte (diapo 3).", "h1": "la partie 1 des notes du Cours 6 (sections 1.1 et 1.2)", "h2": "Pensez à l’organisme qui fournit l’abri et la nourriture aux larves, et au terme qui désigne ce rôle."}, {"c": "Un ténia profite des aliments digérés par une personne, qui s’affaiblit peu à peu.", "q": "Comment s’appelle la <u>relation<\/u> entre le ténia et cette personne ?", "o": ["Parasitologie", "Parasite", "Hôte", "Parasitisme", "Réservoir", "Vecteur"], "a": 3, "e": "Parasitisme : relation où un organisme profite d’un autre, qui en est désavantagé (diapo 3).", "h1": "la partie 1 des notes du Cours 6 (sections 1.1 et 1.2)", "h2": "Pensez à ce que chacun gagne ou perd dans la relation entre le ténia et la personne."}, {"c": "Un ver profite des nutriments d’un poisson, qui perd du poids et devient plus fragile.", "q": "Quel terme décrit la <u>relation<\/u> entre le ver et le poisson ?", "o": ["Parasitologie", "Parasite", "Hôte", "Parasitisme", "Réservoir", "Vecteur"], "a": 3, "e": "L’un profite, l’autre est désavantagé : c’est du parasitisme (diapo 3).", "h1": "la partie 1 des notes du Cours 6 (sections 1.1 et 1.2)", "h2": "Observez ce que gagne ou perd chacun des deux êtres vivants, puis cherchez le mot qui qualifie ce type de relation."}, {"c": "Dans une région, l’eau d’un lac reste contaminée en permanence par des œufs de parasites. D’année en année, c’est là que le parasite se maintient et que partent les nouvelles contaminations.", "q": "Que représente le <u>lac<\/u> ?", "o": ["Parasitologie", "Parasite", "Hôte", "Parasitisme", "Réservoir", "Vecteur"], "a": 4, "e": "Réservoir : milieu (ou organisme) où le parasite vit et se maintient en permanence, d’où il peut contaminer d’autres hôtes (diapo 3). Un réservoir peut donc être un milieu, comme l’eau.", "h1": "la partie 1 des notes du Cours 6 (sections 1.1 et 1.2)", "h2": "Pensez à l’endroit où le parasite se maintient d’une année à l’autre et d’où partent les nouvelles contaminations."}, {"c": "Dans une ferme, le parasite persiste d’une année à l’autre chez les bovins du troupeau. C’est de là qu’il contamine régulièrement l’eau, le sol et d’autres animaux.", "q": "Du point de vue de la persistance du parasite, que représente le <u>troupeau<\/u> ?", "o": ["Parasitologie", "Parasite", "Hôte", "Parasitisme", "Réservoir", "Vecteur"], "a": 4, "e": "Le troupeau est la source où le parasite se maintient en permanence : c’est un réservoir (diapo 3).", "h1": "la partie 1 des notes du Cours 6 (sections 1.1 et 1.2)", "h2": "Demandez-vous où le parasite persiste en permanence et d’où il se propage ensuite vers d’autres animaux et vers l’environnement."}, {"c": "Un moustique pique un malade, puis pique une personne saine à qui il transmet le parasite.", "q": "Que représente le <u>moustique<\/u> ?", "o": ["Parasitologie", "Parasite", "Hôte", "Parasitisme", "Réservoir", "Vecteur"], "a": 5, "e": "Vecteur : organisme vivant qui transporte un parasite d’un hôte à un autre (diapo 3).", "h1": "la partie 1 des notes du Cours 6 (sections 1.1 et 1.2)", "h2": "Observez ce que fait le moustique entre le malade et la personne saine, et cherchez le terme qui décrit ce rôle."}, {"c": "Une mouche se pose sur des déchets contaminés, puis sur un sandwich qu’elle contamine à son tour.", "q": "Que représente la <u>mouche<\/u> ?", "o": ["Parasitologie", "Parasite", "Hôte", "Parasitisme", "Réservoir", "Vecteur"], "a": 5, "e": "La mouche transporte l’agent contaminant d’un endroit à un autre : c’est un vecteur (mécanique, diapo 5). Le sandwich, lui, n’est que ce qui est contaminé.", "h1": "la partie 1 des notes du Cours 6 (sections 1.1 et 1.2)", "h2": "Suivez le trajet de la mouche des déchets jusqu’au sandwich et demandez-vous quel rôle elle joue dans cette contamination."}], "keynote": "Source : diapo 3 (« Les parasites »). Un même animal peut être à la fois hôte et réservoir : les situations précisent le rôle recherché (héberge et nourrit = hôte ; se maintient en permanence et contamine d’autres hôtes = réservoir)."}, {"type": "sort", "title": "Quel groupe est-ce ?", "pwd": "groupes6a", "instr": "Cliquez sur une carte, puis sur le <b>groupe<\/b> auquel elle appartient. Chaque erreur est comptée : prenez le temps de réfléchir aux caractéristiques de chaque groupe (cours 4 et 5, tableau « Diversité des parasites »). Les protozoaires ne font pas partie de cette activité : nous les verrons plus tard.", "bins": [{"k": "bact", "t": "Bactéries"}, {"k": "myc", "t": "Mycètes"}, {"k": "vir", "t": "Virus"}, {"k": "hel", "t": "Helminthes (vers parasites)"}, {"k": "art", "t": "Arthropodes"}], "cards": [{"k": "bact", "t": "Cellule procaryote : l’ADN est dans un nucléoïde, sans vrai noyau", "e": "Les bactéries sont des procaryotes (Cours 4)."}, {"k": "bact", "t": "Paroi faite de peptidoglycane, qui se colore en violet ou en rose (Gram)", "e": "Peptidoglycane et coloration de Gram : propres aux bactéries (Cours 4)."}, {"k": "bact", "t": "Se multiplie par fission binaire", "e": "La fission binaire est la reproduction asexuée des bactéries (Cours 4)."}, {"k": "bact", "t": "<i>Salmonella<\/i>, <i>Listeria<\/i>, <i>E. coli<\/i>", "e": "Exemples du tableau « Diversité des parasites » (diapo 5)."}, {"k": "myc", "t": "Cellule eucaryote dont la paroi contient de la chitine", "e": "Chitine et β-glucanes : paroi des mycètes (Cours 5)."}, {"k": "myc", "t": "Se reproduit par bourgeonnement (cellule isolée) ou par spores portées par des filaments", "e": "Bourgeonnement des levures, spores des moisissures (Cours 5)."}, {"k": "myc", "t": "<i>Penicillium<\/i>, <i>Aspergillus<\/i>, <i>Saccharomyces<\/i>", "e": "Exemples du tableau (diapo 5)."}, {"k": "myc", "t": "Certains membres du groupe altèrent les aliments et produisent des mycotoxines", "e": "Les moisissures altèrent les aliments et produisent des mycotoxines (diapo 5, Cours 5)."}, {"k": "vir", "t": "N’est pas une cellule : agent infectieux non cellulaire", "e": "Les virus ne sont pas des cellules (diapo 5)."}, {"k": "vir", "t": "Ne peut se reproduire qu’en détournant la machinerie d’une cellule hôte", "e": "Parasite intracellulaire obligatoire (diapo 5)."}, {"k": "vir", "t": "Norovirus, virus de l’hépatite A", "e": "Exemples du tableau (diapo 5)."}, {"k": "vir", "t": "Beaucoup plus petit qu’un micromètre", "e": "Taille « &lt; µm » dans le tableau (diapo 5) : plus petit qu’une bactérie."}, {"k": "hel", "t": "Vers parasites multicellulaires : vers ronds et vers plats", "e": "Définition du groupe (diapo 5)."}, {"k": "hel", "t": "Mesure de quelques millimètres à plusieurs mètres", "e": "Taille « mm → m » dans le tableau (diapo 5)."}, {"k": "hel", "t": "<i>Anisakis<\/i>, <i>Trichinella<\/i>, ténias", "e": "Exemples du tableau (diapo 5)."}, {"k": "hel", "t": "Transmis par la viande, le poisson ou des végétaux contaminés", "e": "Lien avec les aliments (diapo 5)."}, {"k": "art", "t": "Invertébrés de quelques millimètres à quelques centimètres", "e": "Nature et taille « mm → cm » (diapo 5)."}, {"k": "art", "t": "Tiques, moustiques, mouches", "e": "Exemples du tableau (diapo 5)."}, {"k": "art", "t": "Se pose sur des déchets puis sur un aliment qu’il contamine (vecteur mécanique)", "e": "Mouches : vecteurs mécaniques qui contaminent les aliments (diapo 5)."}, {"k": "art", "t": "Peut piquer et transporter un parasite d’un hôte à un autre", "e": "Moustiques, tiques : vecteurs (diapos 3 et 5)."}], "keynote": "Sources : cours 4 (bactéries), cours 5 (mycètes) et tableau « Diversité des parasites » (diapo 5). Les cartes ne décrivent que ce qui a été vu jusqu’à la diapo 5 : les virus, les helminthes et les arthropodes sont détaillés dans la suite du cours."}, {"type": "quiz", "title": "Vrai ou faux ? Comparer les groupes", "pwd": "vf6a", "instr": "Pour chaque énoncé, choisissez <b>Vrai<\/b> ou <b>Faux<\/b>. Appuyez-vous sur ce que vous savez des bactéries (cours 4), des mycètes (cours 5) et sur le début de la présentation d’aujourd’hui. Cliquez sur « Valider » : les réponses fausses sont marquées en rouge, sans la bonne réponse. Corrigez-les, puis validez à nouveau.", "label": "Énoncé", "fixedOrder": true, "items": [{"q": "Un virus est un organisme unicellulaire très petit.", "o": ["Vrai", "Faux"], "a": 1, "e": "Un virus n’est pas une cellule : c’est un agent infectieux non cellulaire (diapo 5).", "h1": "la partie 2 et le tableau de synthèse des notes du Cours 6, ainsi que les notes des Cours 4 et 5", "h2": "Pensez à ce qui définit une cellule et demandez-vous si un virus répond à cette définition."}, {"q": "Les bactéries et les mycètes sont tous deux formés de cellules.", "o": ["Vrai", "Faux"], "a": 0, "e": "Bactéries (procaryotes) et mycètes (eucaryotes) sont des organismes cellulaires (Cours 4 et 5).", "h1": "la partie 2 et le tableau de synthèse des notes du Cours 6, ainsi que les notes des Cours 4 et 5", "h2": "Rappelez-vous de quoi sont constitués, d’une part les bactéries, d’autre part les mycètes."}, {"q": "Les vers parasites sont des eucaryotes pluricellulaires.", "o": ["Vrai", "Faux"], "a": 0, "e": "Ce sont des animaux (nématodes, plathelminthes) : vers multicellulaires (diapo 5, arbre de vie du Cours 5).", "h1": "la partie 2 et le tableau de synthèse des notes du Cours 6, ainsi que les notes des Cours 4 et 5", "h2": "Pensez à la place des vers parasites dans l’arbre du vivant : type d’organisme et nombre de cellules."}, {"q": "Le peptidoglycane se retrouve dans la paroi des mycètes.", "o": ["Vrai", "Faux"], "a": 1, "e": "La paroi des mycètes contient de la chitine et des β-glucanes ; le peptidoglycane est propre aux bactéries (Cours 5).", "h1": "la partie 2 et le tableau de synthèse des notes du Cours 6, ainsi que les notes des Cours 4 et 5", "h2": "Pensez aux composants de la paroi des mycètes et à ceux de la paroi des bactéries."}, {"q": "Les moisissures sont des mycètes.", "o": ["Vrai", "Faux"], "a": 0, "e": "Les mycètes regroupent les champignons, les levures et les moisissures (Cours 5).", "h1": "la partie 2 et le tableau de synthèse des notes du Cours 6, ainsi que les notes des Cours 4 et 5", "h2": "Rappelez-vous quels types d’organismes sont regroupés sous le terme mycètes."}, {"q": "Un virus peut se multiplier tout seul sur un aliment laissé à température ambiante.", "o": ["Vrai", "Faux"], "a": 1, "e": "Un virus est un parasite intracellulaire obligatoire : il ne se reproduit que dans une cellule hôte (diapo 5).", "h1": "la partie 2 et le tableau de synthèse des notes du Cours 6, ainsi que les notes des Cours 4 et 5", "h2": "Pensez à ce dont un virus a besoin pour se reproduire, et à ce que peut lui offrir un aliment."}, {"q": "Les bactéries sont des procaryotes alors que les mycètes sont des eucaryotes.", "o": ["Vrai", "Faux"], "a": 0, "e": "Les bactéries n’ont pas de noyau ; les mycètes ont un vrai noyau et des organites (Cours 5).", "h1": "la partie 2 et le tableau de synthèse des notes du Cours 6, ainsi que les notes des Cours 4 et 5", "h2": "Rappelez-vous la présence ou l’absence de noyau chez les bactéries et chez les mycètes."}, {"q": "Le parasitisme est une relation où les deux organismes en tirent profit.", "o": ["Vrai", "Faux"], "a": 1, "e": "Dans le parasitisme, l’un profite et l’autre est désavantagé (diapo 3).", "h1": "la partie 2 et le tableau de synthèse des notes du Cours 6, ainsi que les notes des Cours 4 et 5", "h2": "Demandez-vous ce que gagne ou perd chacun des deux organismes dans une relation de parasitisme."}, {"q": "Un vecteur transporte un parasite d’un hôte à un autre.", "o": ["Vrai", "Faux"], "a": 0, "e": "Définition du vecteur (diapo 3).", "h1": "la partie 2 et le tableau de synthèse des notes du Cours 6, ainsi que les notes des Cours 4 et 5", "h2": "Pensez au rôle d’un vecteur dans la transmission d’un parasite entre des hôtes."}, {"q": "Tous les groupes du tableau « Diversité des parasites » sont invisibles à l’œil nu.", "o": ["Vrai", "Faux"], "a": 1, "e": "Les helminthes mesurent de quelques mm à plusieurs mètres et les arthropodes de quelques mm à quelques cm (diapo 5).", "h1": "la partie 2 et le tableau de synthèse des notes du Cours 6, ainsi que les notes des Cours 4 et 5", "h2": "Comparez la taille des helminthes et des arthropodes du tableau à ce que l’œil humain peut distinguer."}, {"q": "Un réservoir peut être un milieu (comme l’eau), et pas seulement un organisme vivant.", "o": ["Vrai", "Faux"], "a": 0, "e": "Réservoir : milieu ou organisme où le parasite se maintient en permanence (diapo 3).", "h1": "la partie 2 et le tableau de synthèse des notes du Cours 6, ainsi que les notes des Cours 4 et 5", "h2": "Rappelez-vous la définition d’un réservoir et demandez-vous quels types de lieux ou d’organismes elle englobe."}, {"q": "Les mouches sont des vecteurs mécaniques qui contaminent les aliments.", "o": ["Vrai", "Faux"], "a": 0, "e": "Voir la dernière ligne du tableau « Diversité des parasites » (diapo 5).", "h1": "la partie 2 et le tableau de synthèse des notes du Cours 6, ainsi que les notes des Cours 4 et 5", "h2": "Pensez à ce que font les mouches entre des déchets et des aliments, et à leur place dans le tableau."}], "keynote": "Sources : diapos 3 et 5 du cours 6, cours 4 et cours 5."}]};
+
+function shuffle(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b; }
+function el(tag, cls, html){ const e=document.createElement(tag); if(cls) e.className=cls; if(html!==undefined) e.innerHTML=html; return e; }
+
+// ---------- Verrouillage des corrigés ----------
+// Le fichier est du HTML/JS ordinaire : un élève qui inspecte le code source (Ctrl+U)
+// peut retrouver le mot de passe et le contenu masqué. Ce verrou sert seulement à
+// éviter qu'une personne tombe sur les réponses par mégarde.
+function tryUnlock(i){
+  const input = document.getElementById('pwdInput'+i);
+  if(input.value === DATA.games[i].pwd){
+    document.getElementById('lockBar'+i).classList.add('hidden');
+    document.getElementById('keybody'+i).classList.remove('hidden');
+    input.value='';
+    try{ sessionStorage.setItem(DATA.store+i,'1'); }catch(e){}
+  } else { input.value=''; input.placeholder='Mot de passe incorrect'; }
+}
+function relock(i){
+  document.getElementById('keybody'+i).classList.add('hidden');
+  document.getElementById('lockBar'+i).classList.remove('hidden');
+  const input = document.getElementById('pwdInput'+i); input.value=''; input.placeholder='Mot de passe';
+  try{ sessionStorage.removeItem(DATA.store+i); }catch(e){}
+}
+
+// Indices : 1re erreur sur une question = renvoi aux notes; 2e erreur = piste de contenu (sans la réponse).
+function hintHtml(h1, h2, n){
+  let r = '';
+  if(h1) r += '<br>💡 <b>Indice :</b> relisez ' + h1 + '.';
+  if(n >= 2 && h2) r += '<br>🔎 <b>Piste :</b> ' + h2;
+  return r;
+}
+
+// ---------- Jeu de type questionnaire (validation répétée) ----------
+// Les réponses fausses sont marquées en rouge SANS montrer la bonne réponse : l'élève
+// choisit une autre réponse et valide à nouveau. Les bonnes réponses sont verrouillées.
+function buildQuiz(root, g){
+  const items = shuffle(g.items);
+  const total = items.length;
+  const st = []; let tries = 0, finished = false, lastMsg = '';
+  const progress = el('div','progress-line');
+  const success = el('div','success-msg');
+  const vbtn = el('button','btn','Valider mes réponses'); vbtn.type='button'; vbtn.disabled=true;
+  function answered(){ return st.filter(s=>s.picked!==null).length; }
+  function refresh(){
+    if(finished) return;
+    const n = answered();
+    if(tries===0) progress.textContent = n+' / '+total+' réponses données'+(n<total?' — répondez à toutes les questions pour pouvoir valider.':' — vous pouvez valider.');
+    else progress.textContent = n<total ? lastMsg : 'Vous pouvez valider à nouveau.';
+    vbtn.disabled = n<total;
+  }
+  items.forEach((it,i)=>{
+    const card = el('div','qcard');
+    card.innerHTML = '<div class="qnum">'+(g.label||'Question')+' '+(i+1)+' / '+total+'</div>'
+      + (it.c ? '<div class="qcond">'+it.c+'</div>' : '')
+      + '<div class="qtext">'+it.q+'</div><div class="qopts"></div><div class="qfb"></div>';
+    const box = card.querySelector('.qopts');
+    const s = {picked:null, locked:false, fails:0, btns:[], fb:card.querySelector('.qfb'), it:it};
+    st.push(s);
+    let opts = it.o.map((t,k)=>({t:t,k:k}));
+    if(!g.fixedOrder) opts = shuffle(opts);
+    opts.forEach(o=>{
+      const b = el('button','opt',o.t); b.type='button'; b._k=o.k;
+      b.addEventListener('click',()=>{
+        if(finished || s.locked || b.disabled) return;
+        s.picked = o.k;
+        s.btns.forEach(x=>x.classList.toggle('picked', x===b));
+        s.fb.className='qfb'; s.fb.innerHTML='';
+        refresh();
+      });
+      s.btns.push(b); box.appendChild(b);
+    });
+    root.appendChild(card);
+  });
+  const wrap = el('div'); wrap.appendChild(vbtn);
+  root.appendChild(wrap); root.appendChild(progress); root.appendChild(success);
+  vbtn.addEventListener('click',()=>{
+    if(finished || answered()<total) return;
+    tries++; vbtn.textContent = 'Valider à nouveau';
+    let score = 0;
+    st.forEach(s=>{
+      if(s.locked){ score++; return; }
+      if(s.picked === s.it.a){
+        score++; s.locked = true;
+        s.btns.forEach(b=>{ b.disabled = true; b.classList.remove('picked'); if(b._k === s.it.a) b.classList.add('right'); });
+        s.fb.className = 'qfb show ok';
+        s.fb.innerHTML = '✅ Bonne réponse. '+s.it.e;
+      } else {
+        s.btns.forEach(b=>{ if(b._k === s.picked){ b.classList.remove('picked'); b.classList.add('wrong'); b.disabled = true; } });
+        s.picked = null; s.fails++;
+        s.fb.className = 'qfb show bad';
+        s.fb.innerHTML = '❌ Ce n’est pas la bonne réponse.'+hintHtml(s.it.h1, s.it.h2, s.fails)+'<br>Choisissez une autre réponse, puis validez à nouveau.';
+      }
+    });
+    if(score===total){
+      finished = true; vbtn.disabled = true;
+      progress.textContent = 'Score : '+total+' / '+total;
+      success.textContent = '🎯 Toutes les réponses sont bonnes'+(tries===1?' dès la première validation. Excellent !':' après '+tries+' validations. Relisez les explications des questions qui vous ont demandé plusieurs essais.');
+      success.classList.add('partial'); success.style.display='block';
+    } else {
+      lastMsg = 'Validation '+tries+' : '+score+' / '+total+' bonne'+(score>1?'s':'')+' réponse'+(score>1?'s':'')+'. Corrigez les réponses marquées en rouge ('+(total-score)+' à refaire), puis validez à nouveau.';
+      vbtn.disabled = true; progress.textContent = lastMsg;
+    }
+  });
+  refresh();
+  // corrigé
+  let rows = '';
+  g.items.forEach((it,i)=>{ rows += '<tr><td>'+(i+1)+'</td><td>'+(it.c?it.c+'<br>':'')+'<b>'+it.q+'</b></td><td>'+it.o[it.a]+'</td><td>'+it.e+'</td></tr>'; });
+  return '<table class="key"><thead><tr><th>#</th><th>Question</th><th>Bonne réponse</th><th>Explication / source</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+// ---------- Jeu de tri (carte puis groupe) ----------
+function buildSort(root, g){
+  const cards = shuffle(g.cards.map(c=>Object.assign({tries:0,done:false},c)));
+  const total = cards.length;
+  const bank = el('div','piece-bank');
+  const hint = el('div','hint-line');
+  const bins = el('div','bins'); bins.style.gridTemplateColumns = 'repeat('+g.bins.length+',1fr)';
+  const progress = el('div','progress-line');
+  const success = el('div','success-msg');
+  const selBar = el('div','sel-bar hidden');
+  function showSel(c){ if(c){ selBar.innerHTML = '<b>Carte choisie :</b> '+c.t+' — cliquez maintenant sur le bon groupe.'; selBar.classList.remove('hidden'); } else { selBar.classList.add('hidden'); } }
+  let selected = null, errors = 0, placed = 0, firstTry = 0;
+  function upd(){ progress.textContent = placed+' / '+total+' cartes classées — '+errors+' erreur'+(errors>1?'s':''); }
+  cards.forEach(c=>{
+    const d = el('div','piece', c.t); c.el = d;
+    d.addEventListener('click',()=>{
+      if(c.done) return;
+      if(selected && selected.c===c){ d.classList.remove('selected'); selected=null; showSel(null); return; }
+      if(selected) selected.c.el.classList.remove('selected');
+      selected = {c:c}; d.classList.add('selected'); hint.textContent=''; showSel(c);
+    });
+    bank.appendChild(d);
+  });
+  g.bins.forEach(b=>{
+    const bin = el('div','bin','<h4>'+b.t+'</h4><div class="placed"></div>');
+    bin.addEventListener('click',()=>{
+      if(!selected){ hint.textContent='Cliquez d’abord sur une carte, puis sur le groupe où elle va.'; return; }
+      const c = selected.c;
+      if(c.k===b.k){
+        c.done = true; c.el.remove(); selected = null; placed++; showSel(null);
+        if(c.tries===0) firstTry++;
+        bin.querySelector('.placed').appendChild(el('span','placed-piece', c.t));
+        hint.textContent='';
+        upd();
+        if(placed===total){
+          success.textContent = 'Terminé ! '+firstTry+' / '+total+' cartes classées du premier coup ('+errors+' erreur'+(errors>1?'s':'')+'). '+(errors===0?'Sans faute !':'Relisez les cartes pour lesquelles vous avez hésité : ce sont les points à réviser.');
+          success.classList.add('partial'); success.style.display='block';
+        }
+      } else {
+        c.tries++; errors++; upd();
+        hint.textContent = '❌ Ce n’est pas dans ce groupe. Relisez l’indice de la carte et pensez aux caractéristiques de chaque groupe.';
+        bin.classList.remove('shake'); void bin.offsetWidth; bin.classList.add('shake');
+      }
+    });
+    bins.appendChild(bin);
+  });
+  root.appendChild(bank); root.appendChild(hint); root.appendChild(bins); root.appendChild(progress); root.appendChild(success); root.appendChild(selBar);
+  upd();
+  // corrigé
+  let rows='';
+  g.bins.forEach(b=>{
+    const lis = g.cards.filter(c=>c.k===b.k).map(c=>'<li>'+c.t+' <i style="color:#55677a">— '+c.e+'</i></li>').join('');
+    rows += '<tr><td><b>'+b.t+'</b></td><td><ul>'+lis+'</ul></td></tr>';
+  });
+  return '<table class="key"><thead><tr><th>Groupe</th><th>Cartes et explications</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+// ---------- Jeu d'ordre ----------
+function buildOrder(root, g){
+  const steps = shuffle(g.steps.map((t,i)=>({t:t.t,e:t.e,i:i})));
+  const total = steps.length;
+  const cols = el('div','order-cols');
+  const left = el('div','order-box','<h4>Étapes à ordonner</h4>');
+  const right = el('div','order-box','<h4>Votre ordre</h4>');
+  const ol = el('ol','ordered'); right.appendChild(ol);
+  const hint = el('div','hint-line');
+  const progress = el('div','progress-line');
+  const success = el('div','success-msg');
+  let next = 0, errors = 0;
+  function upd(){ progress.textContent = next+' / '+total+' étapes placées — '+errors+' erreur'+(errors>1?'s':''); }
+  steps.forEach(s=>{
+    const b = el('button','step-btn', s.t); b.type='button';
+    b.addEventListener('click',()=>{
+      if(s.i===next){
+        ol.appendChild(el('li','',s.t)); b.remove(); next++; hint.textContent=''; upd();
+        if(next===total){
+          success.textContent = 'Terminé ! '+(errors===0?'Sans faute : ':'Avec '+errors+' erreur'+(errors>1?'s':'')+' : ')+'le cycle est dans le bon ordre.';
+          success.classList.add('partial'); success.style.display='block';
+        }
+      } else {
+        errors++; upd();
+        hint.textContent='❌ Ce n’est pas l’étape suivante. Demandez-vous ce qui doit se passer avant.';
+        right.classList.remove('shake'); void right.offsetWidth; right.classList.add('shake');
+      }
+    });
+    left.appendChild(b);
+  });
+  cols.appendChild(left); cols.appendChild(right);
+  root.appendChild(cols); root.appendChild(hint); root.appendChild(progress); root.appendChild(success);
+  upd();
+  const lis = g.steps.map(s=>'<li><b>'+s.t+'</b><br><i style="color:#55677a">'+s.e+'</i></li>').join('');
+  return '<ol>'+lis+'</ol>';
+}
+
+// ---------- Construction de la page ----------
+const app = document.getElementById('app');
+DATA.games.forEach((g,i)=>{
+  const sec = el('section');
+  sec.innerHTML = '<h2 class="section-title">Jeu '+(i+1)+' — '+g.title+'</h2>'
+    + '<p class="instructions">'+g.instr+'</p>'
+    + '<div class="jeu-wrap" id="play'+i+'"></div>'
+    + '<div class="answer-key"><div class="lock-bar" id="lockBar'+i+'"><span>🔒 Corrigé masqué — réservé à l’enseignant</span>'
+    + '<div class="unlock-form"><input type="password" id="pwdInput'+i+'" placeholder="Mot de passe" onkeydown="if(event.key===\'Enter\')tryUnlock('+i+')">'
+    + '<button class="toggle-btn" onclick="tryUnlock('+i+')">Afficher</button>'
+    + '<span class="pwd-hint" title="Surlignez pour révéler">'+g.pwd+'</span></div></div>'
+    + '<div class="hidden" id="keybody'+i+'"><button class="toggle-btn secondary relock-btn" onclick="relock('+i+')">🔒 Masquer à nouveau</button>'
+    + '<h2>Corrigé — Jeu '+(i+1)+' (enseignant)</h2><div id="keycontent'+i+'"></div>'
+    + (g.keynote?'<p class="note-small">'+g.keynote+'</p>':'') + '</div></div>';
+  app.appendChild(sec);
+  const play = document.getElementById('play'+i);
+  let key = '';
+  if(g.type==='quiz') key = buildQuiz(play,g);
+  else if(g.type==='sort') key = buildSort(play,g);
+  else if(g.type==='order') key = buildOrder(play,g);
+  document.getElementById('keycontent'+i).innerHTML = key;
+  let on = null; try{ on = sessionStorage.getItem(DATA.store+i); }catch(e){}
+  if(on==='1'){ document.getElementById('keybody'+i).classList.remove('hidden'); document.getElementById('lockBar'+i).classList.add('hidden'); }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>TD : Glucides, lipides et protéines</title>
+<style>
+  :root{
+    --gluc:#b5651d;
+    --lip:#a4133c;
+    --prot:#1d70a2;
+    --bg:#f7f7f5;
+    --card-bg:#ffffff;
+    --border:#ddd;
+    --text:#222;
+    --t-beaucoup:#08519c;
+    --t-present:#3182bd;
+    --t-unpeu:#6baed6;
+    --t-presquepas:#bdd7e7;
+    --t-trace:#eff3ff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:"Segoe UI", Arial, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    margin:0;
+    padding:0 0 60px 0;
+    line-height:1.5;
+  }
+  header{
+    background:linear-gradient(135deg,#1b4332,#40916c);
+    color:white;
+    padding:30px 20px;
+    text-align:center;
+  }
+  header h1{margin:0 0 5px 0;font-size:1.8em;}
+  header p{margin:0;opacity:0.9;}
+
+  .container{max-width:1100px;margin:0 auto;padding:20px;}
+
+  .fields{
+    display:flex;
+    flex-wrap:wrap;
+    gap:15px;
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:15px 20px;
+    margin-top:20px;
+  }
+  .fields label{font-weight:600;margin-right:6px;}
+  .fields input{
+    border:none;
+    border-bottom:1px solid #999;
+    background:transparent;
+    padding:4px;
+    min-width:200px;
+    font-size:1em;
+  }
+
+  h2.section-title{
+    margin-top:50px;
+    padding-bottom:8px;
+    border-bottom:3px solid #40916c;
+    color:#1b4332;
+  }
+
+  .instructions{
+    background:#eaf5ef;
+    border:1px solid #cfe8db;
+    border-radius:8px;
+    padding:12px 18px;
+    margin-top:14px;
+    font-size:0.95em;
+  }
+  .resource-links{
+    margin-top:10px;
+    padding:10px 14px;
+    background:#eef6fb;
+    border:1px solid #cfe3f0;
+    border-radius:8px;
+    font-size:0.9em;
+  }
+  .resource-links a{color:#1d5f8a;}
+
+  .calc-inline{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    background:#fff;
+    border:1px solid #b9e3c6;
+    border-radius:10px;
+    padding:8px 10px;
+    font-size:0.9em;
+    color:#1b4332;
+    width:100%;
+    box-sizing:border-box;
+  }
+  .calc-title{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    font-weight:700;
+    font-size:0.78em;
+    line-height:1.2;
+    color:#1b4332;
+    text-align:center;
+  }
+  .calc-icon{flex:none;}
+  .calc-fields-row{
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    gap:5px;
+  }
+  .calc-field{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    flex:1;
+    min-width:0;
+  }
+  .calc-field label{
+    font-size:0.66em;
+    color:#5a7a68;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .calc-inline input{
+    width:100%;
+    box-sizing:border-box;
+    padding:5px 4px;
+    border:1px solid #b9e3c6;
+    border-radius:8px;
+    font-size:0.9em;
+    text-align:center;
+    -moz-appearance:textfield;
+  }
+  .calc-inline input::-webkit-inner-spin-button,
+  .calc-inline input::-webkit-outer-spin-button{
+    -webkit-appearance:none;
+    margin:0;
+  }
+  .calc-inline .calc-eq{font-weight:700;color:#88a;padding-bottom:7px;flex:none;}
+  .calc-result-row{
+    text-align:center;
+    font-weight:700;
+  }
+  .calc-inline .calc-pct-out{
+    font-weight:700;
+    display:inline-block;
+  }
+
+  /* ---- Jeu 1 : casse-tête emboîté ---- */
+  .jeu1-area{position:relative;}
+  .piece-bank{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    background:var(--card-bg);
+    border:2px dashed #bbb;
+    border-radius:10px;
+    padding:16px;
+    margin-top:16px;
+    min-height:60px;
+    position:sticky;
+    top:10px;
+    z-index:20;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  }
+  .piece{
+    padding:9px 16px;
+    background:#eef1f4;
+    border:2px solid #adb5bd;
+    border-radius:8px;
+    font-weight:600;
+    font-size:0.92em;
+    color:#333;
+    cursor:grab;
+    user-select:none;
+  }
+  .piece:hover{background:#dfe4e8;}
+
+  .macro-cards{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    margin-top:20px;
+  }
+  .macro-card{
+    --zc: #999;
+    border:3px solid var(--zc);
+    border-radius:12px;
+    background:#fff;
+    min-height:170px;
+    padding:14px 10px 20px 10px;
+    overflow-x:auto;
+  }
+  .macro-card.gluc{--zc:var(--gluc);}
+  .macro-card.lip{--zc:var(--lip);}
+  .macro-card.prot{--zc:var(--prot);}
+  .card-header{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .macro-card h3{margin:0;color:var(--zc);text-align:center;}
+  .card-toggle-icon{
+    font-size:1.1em;
+    color:var(--zc);
+    transition:transform 0.2s;
+    line-height:1;
+  }
+  .macro-card.collapsed .card-toggle-icon{transform:rotate(-90deg);}
+  .macro-card.collapsed .tree{display:none;}
+  .macro-card.collapsed{min-height:0;padding:10px 14px;}
+  .macro-card.card-complete{background:#f4fbf6;}
+  .macro-card.card-complete .card-header h3::after{content:' ✅'; font-size:0.85em;}
+
+  /* ---- diagramme en arbre (ramifications visibles) ---- */
+  .tree{margin-top:4px;}
+  .tree ul{
+    display:flex;
+    justify-content:center;
+    list-style:none;
+    margin:0;
+    padding:22px 0 0 0;
+    position:relative;
+  }
+  .tree ul::before{
+    content:'';
+    position:absolute;
+    top:0; left:50%;
+    width:0; height:22px;
+    border-left:2px solid var(--zc);
+    pointer-events:none;
+  }
+  .tree li{
+    list-style:none;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:22px 10px 0 10px;
+  }
+  .tree li::before,.tree li::after{
+    content:'';
+    position:absolute;
+    top:0; right:50%;
+    width:50%; height:22px;
+    border-top:2px solid var(--zc);
+    pointer-events:none;
+  }
+  .tree li::after{right:auto;left:50%;border-left:2px solid var(--zc);}
+  .tree li:only-child{padding-top:0;}
+  .tree li:only-child::before,.tree li:only-child::after{display:none;}
+  .tree li:first-child::before{border-top:none;}
+  .tree li:last-child::after{border-left:none;border-top:none;}
+  .tree li:last-child::before{border-right:2px solid var(--zc);border-radius:0 8px 0 0;}
+  .tree li:first-child::after{border-radius:8px 0 0 0;}
+
+  .nest-slot{border-radius:10px;}
+  .nest-slot.empty{
+    border:2px dashed #bbb;
+    background:#fafafa;
+    min-width:118px;
+    min-height:52px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#bbb;
+    font-size:1.3em;
+    cursor:pointer;
+  }
+  .nest-slot.filled{
+    border:2px solid var(--zc);
+    background:#fff;
+    padding:8px 12px;
+  }
+  .nest-label{
+    font-weight:700;
+    color:var(--zc);
+    text-align:center;
+    white-space:nowrap;
+  }
+
+  .progress-note{
+    margin-top:16px;
+    font-size:0.85em;
+    color:#888;
+  }
+  .success-banner{
+    margin-top:16px;
+    background:#e6f4ea;
+    border:1px solid #2e7d46;
+    color:#1b4332;
+    border-radius:8px;
+    padding:12px 18px;
+    font-weight:600;
+  }
+
+  /* ---- Jeu 2 : tableau des aliments ---- */
+  .jeu2-wrap{position:relative;}
+  .jeu2-lock-overlay{
+    position:absolute;
+    inset:0;
+    background:rgba(247,247,245,0.82);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    font-size:1.15em;
+    font-weight:700;
+    color:#555;
+    border-radius:10px;
+    z-index:5;
+    padding:20px;
+  }
+  .jeu2-wrap.locked .jeu2-content{filter:blur(1.5px);pointer-events:none;user-select:none;}
+  .jeu2-wrap:not(.locked) .jeu2-lock-overlay{display:none;}
+
+  .jeu2-table-wrap{
+    display:flex;
+    align-items:flex-start;
+    gap:16px;
+    margin-top:16px;
+  }
+  .jeu2-table-wrap #food-table{
+    flex:1;
+    min-width:0;
+    margin-top:0;
+    table-layout:fixed;
+  }
+  .palette{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px;
+    width:168px;
+    flex:none;
+    position:sticky;
+    top:10px;
+    z-index:20;
+    background:var(--bg);
+    padding:12px;
+    border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  }
+  .palette-pastille{
+    padding:8px 10px;
+    border-radius:10px;
+    border:2px solid transparent;
+    font-size:0.85em;
+    font-weight:700;
+    cursor:pointer;
+    user-select:none;
+    text-align:center;
+  }
+  @media (max-width:760px){
+    .jeu2-table-wrap{flex-direction:column;}
+    .palette{
+      width:100%;
+      flex-direction:row;
+      flex-wrap:wrap;
+      position:static;
+    }
+    .calc-inline{width:auto;flex:1;min-width:220px;}
+  }
+  .palette-pastille.active{border-color:#1b4332;box-shadow:0 0 0 2px rgba(27,67,50,0.3);}
+  .pastille-beaucoup{background:var(--t-beaucoup);color:#fff;}
+  .pastille-present{background:var(--t-present);color:#fff;}
+  .pastille-unpeu{background:var(--t-unpeu);color:#0a2e40;}
+  .pastille-presquepas{background:var(--t-presquepas);color:#0a2e40;}
+  .pastille-trace{background:var(--t-trace);color:#555;border:2px solid #ccc;}
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+    background:var(--card-bg);
+    box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  }
+  th,td{
+    border:1px solid var(--border);
+    padding:8px 10px;
+    text-align:left;
+    vertical-align:middle;
+    font-size:0.95em;
+  }
+  th{background:#1b4332;color:white;}
+  #food-table thead th{
+    position:sticky;
+    top:10px;
+    z-index:15;
+    box-shadow:0 2px 4px rgba(0,0,0,0.12);
+  }
+  #food-table td.food-name{display:flex;align-items:center;gap:10px;font-weight:600;white-space:normal;overflow-wrap:break-word;}
+  #food-table .food-emoji{font-size:1.6em;}
+  #food-table td.cell{
+    cursor:pointer;
+    text-align:center;
+    min-width:110px;
+    height:42px;
+  }
+  #food-table td.cell:hover{outline:2px dashed #999;outline-offset:-2px;}
+  .cell-pastille{
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:14px;
+    font-size:0.8em;
+    font-weight:700;
+  }
+  #food-table tr.row-correct td{background:#e6f4ea;}
+  #food-table tr.row-correct td.food-name::after{
+    content:'✅';
+    margin-left:8px;
+  }
+  .cell-remove{
+    border:none;
+    background:rgba(255,255,255,0.55);
+    color:inherit;
+    cursor:pointer;
+    font-weight:700;
+    margin-left:6px;
+    width:16px;
+    height:16px;
+    line-height:14px;
+    padding:0;
+    border-radius:50%;
+    font-size:0.85em;
+    vertical-align:middle;
+  }
+  .cell-remove:hover{background:rgba(255,255,255,0.9);}
+
+  .toggle-btn{
+    display:inline-block;
+    margin-top:15px;
+    margin-right:10px;
+    padding:8px 16px;
+    background:var(--lip);
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:0.95em;
+  }
+  .toggle-btn.secondary{background:#40916c;}
+  .hidden{display:none !important;}
+
+  .answer-key{
+    margin-top:50px;
+    border:2px dashed var(--lip);
+    border-radius:10px;
+    padding:20px;
+    background:#fff5f7;
+  }
+  .answer-key h2{
+    color:var(--lip);
+    border-bottom:2px solid var(--lip);
+    margin-top:0;
+  }
+  .answer-key table th{background:var(--lip);}
+  .answer-key table tr:nth-child(even) td{background:#fdecef;}
+
+  .lock-bar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    background:#fdecef;
+    border:1px dashed var(--lip);
+    border-radius:8px;
+    padding:14px 18px;
+    color:var(--lip);
+    font-weight:600;
+  }
+  .unlock-form{display:flex;gap:8px;align-items:center;}
+  .unlock-form input[type="password"]{
+    border:1px solid #ddb3bd;
+    border-radius:6px;
+    padding:6px 10px;
+    font-size:0.95em;
+    min-width:160px;
+  }
+  .unlock-form .toggle-btn{margin:0;}
+  .pwd-hint{
+    color:#fdecef;
+    background:#fdecef;
+    user-select:all;
+    -webkit-user-select:all;
+    font-size:0.85em;
+    padding:2px 8px;
+    border-radius:4px;
+    cursor:text;
+  }
+  .pwd-hint::selection{background:#39383a;color:#fff;}
+  .pwd-hint::-moz-selection{background:#39383a;color:#fff;}
+  .relock-btn{
+    float:right;
+    font-size:0.8em;
+    padding:5px 12px;
+  }
+
+  .criteria-list{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:16px 24px;
+    margin-top:20px;
+  }
+  .criteria-list li{margin-bottom:10px;}
+
+  .teacher-preview-link{
+    display:inline-block;
+    margin-top:8px;
+    font-size:0.85em;
+    color:#888;
+    cursor:pointer;
+    text-decoration:underline;
+  }
+
+  footer{
+    text-align:center;
+    margin-top:60px;
+    color:#888;
+    font-size:0.85em;
+  }
+</style>
+<style>
+#sn-bar{font:14px/1.4 "Segoe UI",Arial,sans-serif;background:#1d3a52;color:#fff;margin:0;padding:8px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;box-sizing:border-box;position:relative;z-index:30;}
+#sn-bar *{box-sizing:border-box;}
+#sn-bar a{color:#fff;text-decoration:none;font-weight:600;padding:5px 11px;border-radius:7px;background:rgba(255,255,255,.12);white-space:nowrap;}
+#sn-bar a:hover{background:rgba(255,255,255,.26);}
+#sn-bar .sn-cur{opacity:.85;font-size:.92em;margin-right:auto;}
+#sn-bar details{position:relative;}
+#sn-bar summary{cursor:pointer;list-style:none;font-weight:600;padding:5px 11px;border-radius:7px;background:rgba(255,255,255,.12);user-select:none;}
+#sn-bar summary::-webkit-details-marker{display:none;}
+#sn-bar summary:hover,#sn-bar details[open] summary{background:rgba(255,255,255,.26);}
+#sn-bar .sn-menu{position:absolute;right:0;top:calc(100% + 6px);width:min(430px,92vw);max-height:75vh;overflow:auto;background:#fff;color:#1d2b36;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);padding:8px 0;z-index:40;}
+#sn-bar .sn-menu a{display:block;background:none;color:#1d3a52;border-radius:0;padding:6px 16px;white-space:normal;font-weight:500;}
+#sn-bar .sn-menu a:hover{background:#e8f1f8;}
+#sn-bar .sn-menu a.on{background:#dcebf6;font-weight:700;}
+#sn-bar .sn-menu .sn-co{margin:6px 0 8px 12px;border-left:6px solid var(--cc,#5b7183);}
+#sn-bar .sn-menu b{display:block;padding:4px 16px 2px;color:var(--cn,#5b7183);font-size:.8em;text-transform:uppercase;letter-spacing:.04em;}
+#sn-bar .sn-menu .sn-co a:hover{background:var(--cl,#e8f1f8);}
+#sn-bar .sn-menu .sn-co a.on{background:var(--cl,#dcebf6);font-weight:700;}
+#sn-bar .sn-menu small{display:inline-block;margin-right:8px;background:#2a9d8f;color:#fff;border-radius:5px;padding:1px 8px;text-align:center;font-size:.8em;font-weight:600;white-space:nowrap;}
+#sn-bar .sn-menu small.sn-nt{background:#1d3a52;}
+#sn-bar .sn-menu small.sn-lab{background:#8a5a9a;}
+@media print{#sn-bar{display:none !important;}}
+</style>
+</head>
+<body>
+<div id="sn-bar" style="background:#003357;border-bottom:5px solid #0070c0"><span class="sn-cur">101-813-MA · Activité 2.1</span><a href="../index.html">← Accueil</a><a href="../cours2/notes.html">Notes du cours 2</a><details><summary>☰ Tout le site</summary><div class="sn-menu"><div class="sn-co" style="--cc:#e0d8b8;--co:#1c2b36;--cn:#564e2e;--cd:#35311d;--cl:#f6f5ee"><b>Cours 1 · Introduction à la biologie</b><a href="../cours1/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours1/activite_cours1.1_microorganismes.html"><small>Activité 1.1</small>Diversité des microorganismes</a></div><div class="sn-co" style="--cc:#0070c0;--co:#ffffff;--cn:#00528d;--cd:#003357;--cl:#ebf3f9"><b>Cours 2 · Les molécules du vivant</b><a href="../cours2/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours2/activite_cours2.1_macronutriments.html" class="on"><small>Activité 2.1</small>Glucides, lipides et protéines</a></div><div class="sn-co" style="--cc:#b3a2ba;--co:#1c2b36;--cn:#5a4861;--cd:#382d3c;--cl:#f3f0f4"><b>Cours 3 · Le modèle cellulaire et l'écologie microbienne</b><a href="../cours3/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a></div><div class="sn-co" style="--cc:#166082;--co:#ffffff;--cn:#135371;--cd:#0c3446;--cl:#ebf5f9"><b>Cours 4 · Les bactéries</b><a href="../cours4/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours4/activite_cours4.1_bacteries.html"><small>Activité 4.1</small>Les bactéries : formes et pathogènes alimentaires</a></div><div class="sn-co" style="--cc:#2d9d9f;--co:#ffffff;--cn:#195657;--cd:#0f3636;--cl:#ebf9f9"><b>Cours 5 · Les mycètes</b><a href="../cours5/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours5/activite_cours5.1_qui_pousse_ou.html"><small>Activité 5.1</small>Qui pousse où ? pH et température</a><a href="../cours5/activite_cours5.2_bacteries_vs_mycetes.html"><small>Activité 5.2</small>Bactéries ou mycètes ?</a><a href="../cours5/activite_cours5.3_enquete.html"><small>Activité 5.3</small>Enquête : aliment altéré ou intoxication ?</a></div><div class="sn-co" style="--cc:#c32423;--co:#ffffff;--cn:#9c1d1c;--cd:#611211;--cl:#f9ebeb"><b>Cours 6 · Les virus et autres parasites</b><a href="../cours6/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours6/activite_cours6.1_parasitisme_et_groupes.html"><small>Activité 6.1</small>Parasitisme et groupes d'organismes</a><a href="../cours6/activite_cours6.2_virus.html"><small>Activité 6.2</small>Les virus, de la cellule à l'assiette</a><a href="../cours6/activite_cours6.3_vers_parasites.html"><small>Activité 6.3</small>Les vers parasites, de l'assiette à l'organisme</a></div><div class="sn-co" style="--cc:#d9822b;--co:#1c2b36;--cn:#754515;--cd:#482b0d;--cl:#f9f2eb"><b>Cours 7 · La qualité : échantillonnage et normes</b><a href="../cours7/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours7/activite_cours7.1_danger_et_prelevement.html"><small>Activité 7.1</small>Danger, échantillon et prélèvement</a><a href="../cours7/activite_cours7.2_les_normes.html"><small>Activité 7.2</small>Lire une norme microbiologique</a><a href="../cours7/activite_cours7.3_dilutions.html"><small>Activité 7.3</small>Comprendre les dilutions</a></div><div class="sn-co" style="--cc:#5b8c3e;--co:#ffffff;--cn:#395727;--cd:#233618;--cl:#f1f7ed"><b>Cours 8 · La qualité : indicateurs et identification</b><a href="../cours8/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours8/activite_cours8.1_indicateurs.html"><small>Activité 8.1</small>Les organismes indicateurs</a><a href="../cours8/activite_cours8.2_identifier.html"><small>Activité 8.2</small>Identifier un microorganisme</a></div><div class="sn-co" style="--cc:#8a5a9a;--co:#fff;--cn:#6d4479;--cd:#6d4479;--cl:#f3ecf6"><b>🔬 Laboratoires</b><a href="../labos/fiches-labos.html"><small class="sn-lab">🧪 Labos</small>Fiches de mise en contexte des laboratoires</a></div></div></details></div>
+
+
+<header>
+  <h1>Travaux Dirigés : Glucides, Lipides et Protéines</h1>
+  <p>Activité d'identification et de classification en groupe</p>
+</header>
+
+<div class="container">
+
+  <div class="fields">
+    <div><label>Nom :</label><input type="text"></div>
+    <div><label>Groupe :</label><input type="text"></div>
+    <div><label>Date :</label><input type="text"></div>
+  </div>
+
+  <!-- JEU 1 -->
+  <h2 class="section-title">Jeu 1 — Le casse-tête emboîté des macronutriments</h2>
+  <p class="instructions">Le squelette complet de chaque arbre est déjà affiché ci-dessous : à vous de placer chaque pièce dans la bonne case, où qu'elle se trouve dans l'arbre. Faites glisser une pièce jusqu'à la case voulue (ou cliquez sur une pièce, puis sur la case). Cliquez sur le titre d'une carte pour la réduire ou l'agrandir — elle se referme automatiquement dès qu'elle est complétée.</p>
+
+  <div class="jeu1-area">
+    <div class="piece-bank" id="piece-bank"></div>
+
+    <div class="macro-cards" id="macro-cards"></div>
+  </div>
+
+  <p class="progress-note" id="progress-text"></p>
+  <p class="success-banner hidden" id="success-banner">✅ Bravo, le casse-tête est complété ! Le Jeu 2 est maintenant débloqué plus bas.</p>
+
+  <!-- CORRECTION JEU 1 -->
+  <div class="answer-key" id="answerKey1">
+    <div class="lock-bar" id="lockBar1">
+      <span>🔒 Corrections masquées — réservées à l'enseignant</span>
+      <div class="unlock-form">
+        <input type="password" id="pwdInput1" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')tryUnlock('1')">
+        <button class="toggle-btn" onclick="tryUnlock('1')">Afficher</button>
+        <span class="pwd-hint" title="Surlignez pour révéler">casse-tete24</span>
+      </div>
+    </div>
+    <div class="answer-body hidden" id="answerBody1">
+    <button class="toggle-btn secondary relock-btn" onclick="relock('1')">🔒 Masquer à nouveau</button>
+    <h2>Feuille de correction — Jeu 1 (enseignant)</h2>
+    <p>Structure attendue de l'emboîtement (le squelette complet de l'arbre est déjà affiché aux élèves ; chaque case n'accepte que la pièce correspondante, quel que soit l'ordre de placement) :</p>
+    <table>
+      <thead>
+        <tr><th>Carte</th><th>Niveau 1</th><th>Niveau 2</th><th>Niveau 3</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Glucides</td><td>Sucres rapides</td><td colspan="2">Monosaccharides <em>et</em> Disaccharides — interchangeables entre les 2 cases</td></tr>
+        <tr><td>Glucides</td><td>Sucres lents</td><td colspan="2">Polysaccharides</td></tr>
+        <tr><td>Lipides</td><td>Acide gras</td><td>Saturé</td><td>—</td></tr>
+        <tr><td>Lipides</td><td>Acide gras</td><td>Insaturé</td><td>Cis <em>et</em> Trans — interchangeables entre les 2 cases</td></tr>
+        <tr><td>Lipides</td><td>Cholestérol</td><td>—</td><td>—</td></tr>
+        <tr><td>Protéines</td><td>Acides aminés</td><td colspan="2">Essentiels <em>et</em> Non essentiels — interchangeables entre les 2 cases</td></tr>
+        <tr><td>Protéines</td><td>Qualité protéique</td><td colspan="2">Protéines complètes <em>et</em> Protéines incomplètes — interchangeables entre les 2 cases</td></tr>
+      </tbody>
+    </table>
+    <ul class="criteria-list">
+      <li><b>Pièces interchangeables :</b> 4 paires de pièces ont exactement la même forme (deux cases côte à côte, sans sous-catégorie) et n'ont pas d'ordre gauche/droite significatif — le jeu les accepte donc dans n'importe laquelle des deux cases de la paire : Monosaccharides/Disaccharides, Cis/Trans, Essentiels/Non essentiels, et Protéines complètes/incomplètes. Un élève qui les inverse n'est pas en erreur.</li>
+      <li><b>Sucres rapides vs sucres lents (énergie et glycémie) :</b> les sucres rapides (mono/disaccharides — sucre de table, fruits, boissons sucrées) sont absorbés rapidement par l'organisme et font monter rapidement le taux de sucre dans le sang (la glycémie), procurant un regain d'énergie rapide mais de courte durée. Les sucres lents (polysaccharides — pain, riz, pâtes, légumineuses) sont digérés plus graduellement et fournissent une énergie plus stable, étalée dans le temps.</li>
+      <li><b>« Acide gras », terme général :</b> ce terme regroupe tous les types de gras qu'on consomme (saturés et insaturés) — un peu comme « acides aminés » regroupe les unités de base des protéines. C'est pourquoi Saturé et Insaturé s'emboîtent tous les deux à l'intérieur de la pièce « Acide gras », plutôt que directement dans la carte Lipides.</li>
+      <li><b>Saturé vs Insaturé — effet sur la santé cardiovasculaire :</b> les gras saturés (viande grasse, beurre, produits laitiers entiers), consommés en grande quantité, sont associés à une hausse du cholestérol sanguin — en particulier le « mauvais » cholestérol (LDL) — ce qui augmente à long terme le risque de maladies cardiovasculaires. Les gras insaturés (huile d'olive, avocat, poissons gras, noix) sont généralement considérés comme de meilleurs choix pour la santé du cœur, surtout lorsqu'ils remplacent des gras saturés dans l'alimentation.</li>
+      <li><b>Cis vs Trans — pourquoi les deux s'emboîtent dans « Insaturé » :</b> les gras insaturés existent sous deux configurations : cis (la forme naturelle, présente dans la plupart des huiles végétales et les poissons) et trans (souvent d'origine industrielle). Le gras trans est particulièrement néfaste pour la santé — il augmente le mauvais cholestérol (LDL) tout en diminuant le bon cholestérol (HDL) — c'est pourquoi Santé Canada recommande d'en limiter la consommation beaucoup plus strictement que les autres types de gras.</li>
+      <li><b>Cholestérol — pourquoi il ne s'emboîte pas dans « Acide gras » :</b> le cholestérol est un type de lipide différent des acides gras (c'est un stérol) : on le trouve seulement dans les aliments d'origine animale (jaune d'œuf, abats, fruits de mer), et le corps en fabrique aussi lui-même. Beaucoup d'élèves confondent « gras » et « cholestérol » dans le langage courant — l'activité permet de clarifier que ce sont deux catégories distinctes de lipides, d'où sa place à côté de (et non à l'intérieur de) « Acide gras ».</li>
+      <li><b>Acides aminés essentiels/non essentiels vs Qualité protéique (complètes/incomplètes) :</b> ce sont deux angles différents sur les protéines, d'où les deux branches distinctes dans l'arbre. « Acides aminés » porte sur les unités de base : les essentiels doivent obligatoirement provenir de l'alimentation, car le corps ne peut pas les fabriquer lui-même ; les non essentiels peuvent être synthétisés par l'organisme. « Qualité protéique » porte plutôt sur la source alimentaire dans son ensemble : les protéines complètes (viande, poisson, œufs, produits laitiers, soya) apportent tous les acides aminés essentiels en quantité suffisante, alors que les protéines incomplètes (la plupart des sources végétales prises isolément, comme les légumineuses ou les céréales) en manquent au moins un — d'où l'intérêt, pour qui mange peu ou pas de produits animaux, de combiner plusieurs sources végétales complémentaires dans une même journée.</li>
+    </ul>
+    <p style="font-size:0.85em;color:#888;">Rappel : le jeu n'affiche aucun feedback d'erreur ou de réussite pièce par pièce — seule la complétion totale et correcte de chaque carte déclenche sa fermeture automatique (et le message de succès final pour l'ensemble du casse-tête). Le Jeu 2 reste verrouillé (flou) pour les élèves tant que le casse-tête n'est pas complété ; saisir le mot de passe de ce corrigé le débloque aussi, pour le consulter ou le présenter sans résoudre le casse-tête.</p>
+    </div>
+  </div>
+
+  <!-- JEU 2 -->
+  <h2 class="section-title">Jeu 2 — La composition des aliments</h2>
+
+  <div class="jeu2-wrap locked" id="jeu2-wrap">
+    <div class="jeu2-lock-overlay">🔒 Complétez le casse-tête du Jeu 1 pour débloquer le Jeu 2.</div>
+    <div class="jeu2-content">
+
+      <p class="instructions">Pour chacun des 17 aliments, déterminez la proportion que représente chaque macronutriment (glucides, lipides, protéines) dans l'aliment. Trouvez les grammes de chacun dans la source ci-dessous, puis servez-vous de la petite calculatrice à côté des pastilles pour obtenir un pourcentage (poids du nutriment ÷ poids total de l'aliment mesuré). Sélectionnez ensuite une pastille et cliquez sur la case correspondante dans le tableau (aliment × macronutriment) pour la déposer — cliquez de nouveau sur une case avec la même pastille pour l'effacer.</p>
+
+      <div class="resource-links">
+        <b>Source suggérée :</b>
+        <a href="https://www.canada.ca/content/dam/hc-sc/migration/hc-sc/fn-an/alt_formats/pdf/nutrition/fiche-nutri-data/nvscf-vnqau-fra.pdf" target="_blank" rel="noopener">Valeur nutritive de quelques aliments usuels (Santé Canada, PDF)</a>.
+      </div>
+
+      <div class="jeu2-table-wrap">
+      <table id="food-table">
+        <colgroup>
+          <col style="width:42%">
+          <col style="width:19.33%">
+          <col style="width:19.33%">
+          <col style="width:19.34%">
+        </colgroup>
+        <thead>
+          <tr><th>Aliment</th><th>Glucides</th><th>Lipides</th><th>Protéines</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="food-name"><span class="food-emoji">🍬</span>1. Sucre, commercial</td><td class="cell" data-food="1" data-macro="gluc"></td><td class="cell" data-food="1" data-macro="lip"></td><td class="cell" data-food="1" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🫒</span>2. Huile d'olive</td><td class="cell" data-food="2" data-macro="gluc"></td><td class="cell" data-food="2" data-macro="lip"></td><td class="cell" data-food="2" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🥚</span>3. Blanc d'œuf cuit</td><td class="cell" data-food="3" data-macro="gluc"></td><td class="cell" data-food="3" data-macro="lip"></td><td class="cell" data-food="3" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🍗</span>4. Viande froide, poitrine de poulet</td><td class="cell" data-food="4" data-macro="gluc"></td><td class="cell" data-food="4" data-macro="lip"></td><td class="cell" data-food="4" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🍚</span>5. Riz blanc à grains longs, cuit</td><td class="cell" data-food="5" data-macro="gluc"></td><td class="cell" data-food="5" data-macro="lip"></td><td class="cell" data-food="5" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🍞</span>6. Pain blanc commercial</td><td class="cell" data-food="6" data-macro="gluc"></td><td class="cell" data-food="6" data-macro="lip"></td><td class="cell" data-food="6" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🥑</span>7. Avocat</td><td class="cell" data-food="7" data-macro="gluc"></td><td class="cell" data-food="7" data-macro="lip"></td><td class="cell" data-food="7" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🥜</span>8. Amandes séchées</td><td class="cell" data-food="8" data-macro="gluc"></td><td class="cell" data-food="8" data-macro="lip"></td><td class="cell" data-food="8" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🫘</span>9. Lentilles, bouillies, salées</td><td class="cell" data-food="9" data-macro="gluc"></td><td class="cell" data-food="9" data-macro="lip"></td><td class="cell" data-food="9" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🧊</span>10. Tofu, régulier, ferme et extra ferme</td><td class="cell" data-food="10" data-macro="gluc"></td><td class="cell" data-food="10" data-macro="lip"></td><td class="cell" data-food="10" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🐟</span>11. Saumon de l'Atlantique d'élevage, au four ou grillé</td><td class="cell" data-food="11" data-macro="gluc"></td><td class="cell" data-food="11" data-macro="lip"></td><td class="cell" data-food="11" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🧀</span>12. Cheddar</td><td class="cell" data-food="12" data-macro="gluc"></td><td class="cell" data-food="12" data-macro="lip"></td><td class="cell" data-food="12" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🥣</span>13. Yogourt, nature, 1-2% M.G.</td><td class="cell" data-food="13" data-macro="gluc"></td><td class="cell" data-food="13" data-macro="lip"></td><td class="cell" data-food="13" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🥣</span>14. Yogourt, nature, 2-4% M.G.</td><td class="cell" data-food="14" data-macro="gluc"></td><td class="cell" data-food="14" data-macro="lip"></td><td class="cell" data-food="14" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🍌</span>15. Banane</td><td class="cell" data-food="15" data-macro="gluc"></td><td class="cell" data-food="15" data-macro="lip"></td><td class="cell" data-food="15" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🥛</span>16. Lait partiellement écrémé, 2% M.G.</td><td class="cell" data-food="16" data-macro="gluc"></td><td class="cell" data-food="16" data-macro="lip"></td><td class="cell" data-food="16" data-macro="prot"></td></tr>
+          <tr><td class="food-name"><span class="food-emoji">🍳</span>17. Oeuf cuit dur (à la coque)</td><td class="cell" data-food="17" data-macro="gluc"></td><td class="cell" data-food="17" data-macro="lip"></td><td class="cell" data-food="17" data-macro="prot"></td></tr>
+        </tbody>
+      </table>
+
+      <div class="palette" id="palette">
+        <div class="palette-pastille pastille-beaucoup" data-tier="beaucoup">Beaucoup &gt;50%</div>
+        <div class="palette-pastille pastille-present" data-tier="present">Présent &gt;25%</div>
+        <div class="palette-pastille pastille-unpeu" data-tier="unpeu">Un peu &gt;5%</div>
+        <div class="palette-pastille pastille-presquepas" data-tier="presquepas">Presque pas &gt;1%</div>
+        <div class="palette-pastille pastille-trace" data-tier="trace">Trace &lt;1%</div>
+        <div class="calc-inline" title="Calculer un pourcentage à partir des grammes (nutriment ÷ poids total de l'aliment)">
+          <span class="calc-title">
+            <svg class="calc-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="11" x2="8" y2="11"></line><line x1="12" y1="11" x2="12" y2="11"></line><line x1="16" y1="11" x2="16" y2="11"></line><line x1="8" y1="15" x2="8" y2="15"></line><line x1="12" y1="15" x2="12" y2="15"></line><line x1="16" y1="15" x2="16" y2="15"></line><line x1="8" y1="19" x2="8" y2="19"></line><line x1="12" y1="19" x2="12" y2="19"></line></svg>
+            <span>Calculer un %</span>
+          </span>
+          <div class="calc-fields-row">
+            <div class="calc-field">
+              <label for="calc-nutrient">Poids nutriment</label>
+              <input type="number" min="0" step="0.1" id="calc-nutrient" inputmode="decimal">
+            </div>
+            <span class="calc-eq">÷</span>
+            <div class="calc-field">
+              <label for="calc-total">Poids total</label>
+              <input type="number" min="0" step="0.1" id="calc-total" inputmode="decimal">
+            </div>
+          </div>
+          <div class="calc-result-row">= <span class="calc-pct-out" id="calc-pct-out">—%</span></div>
+        </div>
+      </div>
+      </div>
+
+      <button class="toggle-btn secondary" onclick="resetFoodGame()">Réinitialiser le Jeu 2</button>
+
+    </div>
+  </div>
+
+  <!-- CORRECTION JEU 2 -->
+  <div class="answer-key" id="answerKey2">
+    <div class="lock-bar" id="lockBar2">
+      <span>🔒 Corrections masquées — réservées à l'enseignant</span>
+      <div class="unlock-form">
+        <input type="password" id="pwdInput2" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')tryUnlock('2')">
+        <button class="toggle-btn" onclick="tryUnlock('2')">Afficher</button>
+        <span class="pwd-hint" title="Surlignez pour révéler">macros24</span>
+      </div>
+    </div>
+    <div class="answer-body hidden" id="answerBody2">
+    <button class="toggle-btn secondary relock-btn" onclick="relock('2')">🔒 Masquer à nouveau</button>
+    <h2>Feuille de correction — Jeu 2 (enseignant)</h2>
+    <p><i>Pourcentages calculés selon : poids du macronutriment (g) ÷ poids total de l'aliment mesuré (g) × 100, arrondis au dixième près. <b>Note :</b> la somme des trois pourcentages n'atteint pas 100 % pour la plupart des aliments, puisque l'eau, les fibres et d'autres composants font aussi partie du poids total — ce n'est pas une erreur de calcul. Les aliments 8 (amandes séchées, lipides à 50,0 %) et 14 (yogourt 2-4 % M.G., protéines à 5,0 %) tombent exactement ou tout près d'un seuil de palier ; acceptez la réponse des élèves si leur calcul est juste, même si le palier choisi diffère légèrement.</i></p>
+    <table>
+      <thead>
+        <tr><th>Aliment</th><th>Poids (g)</th><th>Glucides</th><th>Lipides</th><th>Protéines</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1. Sucre, commercial</td><td>30 g</td><td><span class="cell-pastille pastille-beaucoup">66,7% Beaucoup</span></td><td><span class="cell-pastille pastille-unpeu">20,0% Un peu</span></td><td><span class="cell-pastille pastille-unpeu">6,7% Un peu</span></td></tr>
+        <tr><td>2. Huile d'olive</td><td>14 g</td><td><span class="cell-pastille pastille-trace">0% Trace</span></td><td><span class="cell-pastille pastille-beaucoup">100% Beaucoup</span></td><td><span class="cell-pastille pastille-trace">0% Trace</span></td></tr>
+        <tr><td>3. Blanc d'œuf cuit</td><td>33 g</td><td><span class="cell-pastille pastille-trace">0,3% Trace</span></td><td><span class="cell-pastille pastille-trace">0% Trace</span></td><td><span class="cell-pastille pastille-unpeu">9,1% Un peu</span></td></tr>
+        <tr><td>4. Viande froide, poitrine de poulet</td><td>56 g</td><td><span class="cell-pastille pastille-presquepas">1,8% Presque pas</span></td><td><span class="cell-pastille pastille-unpeu">7,1% Un peu</span></td><td><span class="cell-pastille pastille-unpeu">14,3% Un peu</span></td></tr>
+        <tr><td>5. Riz blanc à grains longs, cuit</td><td>83 g</td><td><span class="cell-pastille pastille-present">28,9% Présent</span></td><td><span class="cell-pastille pastille-trace">0,1% Trace</span></td><td><span class="cell-pastille pastille-presquepas">2,4% Presque pas</span></td></tr>
+        <tr><td>6. Pain blanc commercial</td><td>35 g</td><td><span class="cell-pastille pastille-beaucoup">51,4% Beaucoup</span></td><td><span class="cell-pastille pastille-presquepas">2,9% Presque pas</span></td><td><span class="cell-pastille pastille-unpeu">8,6% Un peu</span></td></tr>
+        <tr><td>7. Avocat</td><td>101 g</td><td><span class="cell-pastille pastille-unpeu">8,9% Un peu</span></td><td><span class="cell-pastille pastille-unpeu">14,9% Un peu</span></td><td><span class="cell-pastille pastille-presquepas">2,0% Presque pas</span></td></tr>
+        <tr><td>8. Amandes séchées</td><td>36 g</td><td><span class="cell-pastille pastille-unpeu">19,4% Un peu</span></td><td><span class="cell-pastille pastille-present">50,0% Présent</span></td><td><span class="cell-pastille pastille-unpeu">22,2% Un peu</span></td></tr>
+        <tr><td>9. Lentilles, bouillies, salées</td><td>146 g</td><td><span class="cell-pastille pastille-unpeu">19,9% Un peu</span></td><td><span class="cell-pastille pastille-trace">0,7% Trace</span></td><td><span class="cell-pastille pastille-unpeu">8,9% Un peu</span></td></tr>
+        <tr><td>10. Tofu, régulier, ferme et extra ferme</td><td>150 g</td><td><span class="cell-pastille pastille-presquepas">2,0% Presque pas</span></td><td><span class="cell-pastille pastille-unpeu">7,3% Un peu</span></td><td><span class="cell-pastille pastille-unpeu">14,0% Un peu</span></td></tr>
+        <tr><td>11. Saumon de l'Atlantique d'élevage, au four ou grillé</td><td>75 g</td><td><span class="cell-pastille pastille-trace">0% Trace</span></td><td><span class="cell-pastille pastille-unpeu">8,0% Un peu</span></td><td><span class="cell-pastille pastille-unpeu">24,0% Un peu</span></td></tr>
+        <tr><td>12. Cheddar</td><td>50 g</td><td><span class="cell-pastille pastille-presquepas">2,0% Presque pas</span></td><td><span class="cell-pastille pastille-present">34,0% Présent</span></td><td><span class="cell-pastille pastille-unpeu">24,0% Un peu</span></td></tr>
+        <tr><td>13. Yogourt, nature, 1-2% M.G.</td><td>181 g</td><td><span class="cell-pastille pastille-unpeu">7,2% Un peu</span></td><td><span class="cell-pastille pastille-presquepas">1,7% Presque pas</span></td><td><span class="cell-pastille pastille-unpeu">5,5% Un peu</span></td></tr>
+        <tr><td>14. Yogourt, nature, 2-4% M.G.</td><td>181 g</td><td><span class="cell-pastille pastille-unpeu">6,6% Un peu</span></td><td><span class="cell-pastille pastille-presquepas">2,8% Presque pas</span></td><td><span class="cell-pastille pastille-presquepas">5,0% Presque pas</span></td></tr>
+        <tr><td>15. Banane</td><td>118 g</td><td><span class="cell-pastille pastille-unpeu">22,9% Un peu</span></td><td><span class="cell-pastille pastille-trace">0,1% Trace</span></td><td><span class="cell-pastille pastille-trace">0,8% Trace</span></td></tr>
+        <tr><td>16. Lait partiellement écrémé, 2% M.G.</td><td>258 g</td><td><span class="cell-pastille pastille-presquepas">4,7% Presque pas</span></td><td><span class="cell-pastille pastille-presquepas">1,9% Presque pas</span></td><td><span class="cell-pastille pastille-presquepas">3,5% Presque pas</span></td></tr>
+        <tr><td>17. Oeuf cuit dur (à la coque)</td><td>50 g</td><td><span class="cell-pastille pastille-presquepas">2,0% Presque pas</span></td><td><span class="cell-pastille pastille-unpeu">10,0% Un peu</span></td><td><span class="cell-pastille pastille-unpeu">12,0% Un peu</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Points à souligner en classe</h3>
+    <ul class="criteria-list">
+      <li><b>Les 2 aliments « purs » (1, 2) :</b> le sucre et l'huile illustrent chacun un macronutriment presque à 100 % du poids de l'aliment, un bon point de départ avant les cas mixtes.</li>
+      <li><b>L'œuf entier vs le blanc d'œuf (17 vs 3) :</b> le blanc d'œuf est presque uniquement composé de protéines (glucides et lipides à l'état de trace), alors que le jaune ajoute assez de gras à l'œuf entier pour que lipides et protéines deviennent tous les deux « un peu » — un bon exemple de l'effet du jaune sur le profil de l'aliment.</li>
+      <li><b>Le lait et les deux yogourts (16, 13 et 14) :</b> ces trois produits laitiers ont des pourcentages de glucides, lipides et protéines étonnamment proches (tous sous 10 % du poids) — un bon exemple que le poids d'un aliment est majoritairement composé d'eau, pas seulement des 3 macronutriments.</li>
+      <li><b>Yogourt 1-2% vs 2-4% M.G. (13 vs 14) :</b> en passant à un yogourt plus riche en matières grasses, le pourcentage de lipides augmente (1,7 % → 2,8 %) alors que les glucides et les protéines diminuent légèrement — une belle occasion de montrer qu'un seul chiffre (le % de M.G.) peut faire varier tout le profil.</li>
+      <li><b>Tofu et saumon (10 et 11) :</b> un aliment végétal et un aliment animal avec un profil semblable — lipides et protéines dans la catégorie « un peu », glucides quasi absents.</li>
+      <li><b>Rappel méthodologique :</b> le pourcentage de chaque macronutriment est calculé par rapport au poids total de l'aliment (et non par rapport à la somme des 3 macronutriments ou en calories) — c'est pourquoi les trois pourcentages d'un même aliment n'ont pas à totaliser 100 % ; le reste du poids est de l'eau, des fibres, etc.</li>
+    </ul>
+    </div>
+  </div>
+
+</div>
+
+<footer>Document HTML — TD Glucides, Lipides et Protéines</footer>
+
+<script>
+  // ================= JEU 1 : casse-tête emboîté =================
+  // La propriété "group" marque des pièces interchangeables : deux pièces qui
+  // partagent le même "group" ont exactement la même forme (des feuilles, sans
+  // enfants) et peuvent être déposées indifféremment dans l'une ou l'autre case
+  // de ce groupe, car leur position gauche/droite n'a pas de signification.
+  var TREES = [
+    { group:'gluc', title:'Glucides', roots:[
+      { key:'rapide', label:'Sucres rapides', children:[
+        { key:'mono', label:'Monosaccharides', children:[], group:'gluc-simple' },
+        { key:'di', label:'Disaccharides', children:[], group:'gluc-simple' }
+      ]},
+      { key:'lent', label:'Sucres lents', children:[
+        { key:'poly', label:'Polysaccharides', children:[] }
+      ]}
+    ]},
+    { group:'lip', title:'Lipides', roots:[
+      { key:'ag', label:'Acide gras', children:[
+        { key:'sat', label:'Saturé', children:[] },
+        { key:'insat', label:'Insaturé', children:[
+          { key:'cis', label:'Cis', children:[], group:'lip-insat' },
+          { key:'trans', label:'Trans', children:[], group:'lip-insat' }
+        ]}
+      ]},
+      { key:'chol', label:'Cholestérol', children:[] }
+    ]},
+    { group:'prot', title:'Protéines', roots:[
+      { key:'aa', label:'Acides aminés', children:[
+        { key:'ess', label:'Essentiels', children:[], group:'prot-aa' },
+        { key:'noness', label:'Non essentiels', children:[], group:'prot-aa' }
+      ]},
+      { key:'qual', label:'Qualité protéique', children:[
+        { key:'pcomp', label:'Protéines complètes', children:[], group:'prot-qual' },
+        { key:'pincomp', label:'Protéines incomplètes', children:[], group:'prot-qual' }
+      ]}
+    ]}
+  ];
+
+  var allNodes = [];
+  var nodeByKey = {};
+  function collectNodes(node, treeGroup){
+    node.treeGroup = treeGroup;
+    allNodes.push(node);
+    nodeByKey[node.key] = node;
+    node.children.forEach(function(child){ collectNodes(child, treeGroup); });
+  }
+  TREES.forEach(function(tree){ tree.roots.forEach(function(n){ collectNodes(n, tree.group); }); });
+
+  var treeProgress = {};
+  TREES.forEach(function(tree){ treeProgress[tree.group] = { placed:0, total:0 }; });
+  allNodes.forEach(function(n){ treeProgress[n.treeGroup].total++; });
+
+  var totalPieces = allNodes.length;
+  var placedCount = 0;
+  var selectedKey = null;
+
+  // mélange l'ordre d'affichage de la banque
+  var shuffled = allNodes.slice();
+  for(var i = shuffled.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp;
+  }
+
+  var bank = document.getElementById('piece-bank');
+  shuffled.forEach(function(node){
+    var el = document.createElement('div');
+    el.className = 'piece';
+    el.textContent = node.label;
+    el.draggable = true;
+    el.id = 'piece-' + node.key;
+    el.addEventListener('dragstart', function(ev){
+      ev.dataTransfer.setData('text/plain', node.key);
+    });
+    el.addEventListener('click', function(){
+      document.querySelectorAll('.piece').forEach(function(p){ p.classList.remove('selected'); });
+      el.classList.add('selected');
+      selectedKey = node.key;
+    });
+    node.bankEl = el;
+    bank.appendChild(el);
+  });
+
+  function buildLi(node){
+    var li = document.createElement('li');
+    li.appendChild(createSlot(node));
+    if(node.children.length){
+      var childUl = document.createElement('ul');
+      node.children.forEach(function(child){
+        childUl.appendChild(buildLi(child));
+      });
+      li.appendChild(childUl);
+    }
+    return li;
+  }
+
+  function createSlot(node){
+    var slot = document.createElement('div');
+    slot.className = 'nest-slot empty';
+    slot.dataset.key = node.key;
+    slot.innerHTML = '<span>?</span>';
+    slot.addEventListener('dragover', function(ev){ ev.preventDefault(); });
+    slot.addEventListener('drop', function(ev){
+      ev.preventDefault();
+      var key = ev.dataTransfer.getData('text/plain');
+      tryPlace(key, node, slot);
+    });
+    slot.addEventListener('click', function(){
+      if(selectedKey) tryPlace(selectedKey, node, slot);
+    });
+    return slot;
+  }
+
+  function tryPlace(key, node, slot){
+    if(!slot.classList.contains('empty')) return; // case déjà remplie
+    var draggedNode = nodeByKey[key];
+    if(!draggedNode) return;
+    // une pièce est acceptée si elle correspond exactement à cette case, ou si
+    // elle appartient au même groupe de pièces interchangeables
+    var acceptable = node.group ? (draggedNode.group === node.group) : (draggedNode.key === node.key);
+    if(!acceptable) return; // rien ne se passe si ce n'est pas la bonne pièce
+    if(draggedNode.bankEl.dataset.placed) return;
+    draggedNode.bankEl.dataset.placed = 'true';
+    draggedNode.bankEl.remove();
+    if(selectedKey === key) selectedKey = null;
+
+    slot.classList.remove('empty');
+    slot.classList.add('filled');
+    slot.dataset.filledKey = draggedNode.key;
+    slot.innerHTML = '';
+    var labelEl = document.createElement('div');
+    labelEl.className = 'nest-label';
+    labelEl.textContent = draggedNode.label;
+    slot.appendChild(labelEl);
+
+    placedCount++;
+    var prog = treeProgress[node.treeGroup];
+    prog.placed++;
+    if(prog.placed === prog.total){
+      collapseCard(node.treeGroup, true);
+    }
+    updateProgress();
+  }
+
+  function toggleCard(group){
+    var card = document.getElementById('card-' + group);
+    if(card) card.classList.toggle('collapsed');
+  }
+  function collapseCard(group, completed){
+    var card = document.getElementById('card-' + group);
+    if(!card) return;
+    card.classList.add('collapsed');
+    if(completed) card.classList.add('card-complete');
+  }
+
+  var cardsWrap = document.getElementById('macro-cards');
+  TREES.forEach(function(tree){
+    var card = document.createElement('div');
+    card.className = 'macro-card ' + tree.group;
+    card.id = 'card-' + tree.group;
+
+    var header = document.createElement('div');
+    header.className = 'card-header';
+    header.addEventListener('click', function(){ toggleCard(tree.group); });
+    var h3 = document.createElement('h3');
+    h3.textContent = tree.title;
+    var icon = document.createElement('span');
+    icon.className = 'card-toggle-icon';
+    icon.textContent = '▾';
+    header.appendChild(h3);
+    header.appendChild(icon);
+
+    var treeWrap = document.createElement('div');
+    treeWrap.className = 'tree';
+    var rootUl = document.createElement('ul');
+    tree.roots.forEach(function(node){
+      rootUl.appendChild(buildLi(node));
+    });
+    treeWrap.appendChild(rootUl);
+
+    card.appendChild(header);
+    card.appendChild(treeWrap);
+    cardsWrap.appendChild(card);
+  });
+
+  function updateProgress(){
+    var remaining = totalPieces - placedCount;
+    document.getElementById('progress-text').textContent =
+      remaining > 0 ? remaining + ' pièce(s) restante(s) dans la banque' : '';
+    if(placedCount === totalPieces){
+      document.getElementById('success-banner').classList.remove('hidden');
+      var wrap = document.getElementById('jeu2-wrap');
+      wrap.classList.remove('locked');
+      wrap.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  }
+  updateProgress();
+
+  // ================= JEU 2 : tableau des aliments =================
+  var TIER_LABELS = {
+    beaucoup:'Beaucoup', present:'Présent', unpeu:'Un peu',
+    presquepas:'Presque pas', trace:'Trace'
+  };
+  var activeTier = null;
+
+  // Valeurs de référence (tableau fourni par l'enseignant) pour le feedback de réussite par ligne
+  var FOOD_ANSWERS = {
+    1:{gluc:'beaucoup',lip:'unpeu',prot:'unpeu'},
+    2:{gluc:'trace',lip:'beaucoup',prot:'trace'},
+    3:{gluc:'trace',lip:'trace',prot:'unpeu'},
+    4:{gluc:'presquepas',lip:'unpeu',prot:'unpeu'},
+    5:{gluc:'present',lip:'trace',prot:'presquepas'},
+    6:{gluc:'beaucoup',lip:'presquepas',prot:'unpeu'},
+    7:{gluc:'unpeu',lip:'unpeu',prot:'presquepas'},
+    8:{gluc:'unpeu',lip:'present',prot:'unpeu'},
+    9:{gluc:'unpeu',lip:'trace',prot:'unpeu'},
+    10:{gluc:'presquepas',lip:'unpeu',prot:'unpeu'},
+    11:{gluc:'trace',lip:'unpeu',prot:'unpeu'},
+    12:{gluc:'presquepas',lip:'present',prot:'unpeu'},
+    13:{gluc:'unpeu',lip:'presquepas',prot:'unpeu'},
+    14:{gluc:'unpeu',lip:'presquepas',prot:'presquepas'},
+    15:{gluc:'unpeu',lip:'trace',prot:'trace'},
+    16:{gluc:'presquepas',lip:'presquepas',prot:'presquepas'},
+    17:{gluc:'presquepas',lip:'unpeu',prot:'unpeu'}
+  };
+
+  function checkRow(foodId){
+    var cells = document.querySelectorAll('#food-table td.cell[data-food="' + foodId + '"]');
+    if(!cells.length) return;
+    var row = cells[0].closest('tr');
+    var answer = FOOD_ANSWERS[foodId];
+    var allFilled = true;
+    cells.forEach(function(c){ if(!c.dataset.tier) allFilled = false; });
+    var allCorrect = allFilled && answer && Array.prototype.every.call(cells, function(c){
+      return c.dataset.tier === answer[c.dataset.macro];
+    });
+    row.classList.toggle('row-correct', !!allCorrect);
+  }
+
+  document.querySelectorAll('.palette-pastille').forEach(function(p){
+    p.draggable = true;
+    p.addEventListener('dragstart', function(ev){
+      ev.dataTransfer.setData('text/plain', p.dataset.tier);
+    });
+    p.addEventListener('click', function(){
+      var already = p.classList.contains('active');
+      document.querySelectorAll('.palette-pastille').forEach(function(x){ x.classList.remove('active'); });
+      if(!already){
+        p.classList.add('active');
+        activeTier = p.dataset.tier;
+      } else {
+        activeTier = null;
+      }
+    });
+  });
+
+  document.querySelectorAll('#food-table td.cell').forEach(function(cell){
+    cell.addEventListener('dragover', function(ev){ ev.preventDefault(); });
+    cell.addEventListener('drop', function(ev){
+      ev.preventDefault();
+      var tier = ev.dataTransfer.getData('text/plain');
+      if(tier) stampCell(cell, tier);
+    });
+    cell.addEventListener('click', function(ev){
+      if(ev.target.closest('.cell-remove')){
+        ev.stopPropagation();
+        clearCell(cell);
+        return;
+      }
+      if(!activeTier) return;
+      var current = cell.dataset.tier;
+      if(current === activeTier){
+        clearCell(cell);
+      } else {
+        stampCell(cell, activeTier);
+      }
+    });
+  });
+
+  function stampCell(cell, tier){
+    cell.dataset.tier = tier;
+    cell.innerHTML = '<span class="cell-pastille pastille-' + tier + '">' + TIER_LABELS[tier] +
+      ' <button type="button" class="cell-remove" title="Supprimer" aria-label="Supprimer">×</button></span>';
+    checkRow(cell.dataset.food);
+  }
+  function clearCell(cell){
+    delete cell.dataset.tier;
+    cell.innerHTML = '';
+    checkRow(cell.dataset.food);
+  }
+
+  function resetFoodGame(){
+    document.querySelectorAll('#food-table td.cell').forEach(clearCell);
+    document.querySelectorAll('.palette-pastille').forEach(function(p){ p.classList.remove('active'); });
+    activeTier = null;
+  }
+
+  // Mini calculatrice de pourcentage (Jeu 2) : poids total + poids d'un nutriment -> %.
+  (function(){
+    var totalEl = document.getElementById('calc-total');
+    var nutrientEl = document.getElementById('calc-nutrient');
+    var outEl = document.getElementById('calc-pct-out');
+    if(!totalEl || !nutrientEl || !outEl) return;
+
+    function recompute(){
+      var total = parseFloat(totalEl.value);
+      var nutrient = parseFloat(nutrientEl.value);
+      if(!total || total <= 0 || isNaN(nutrient) || nutrient < 0){
+        outEl.textContent = '—%';
+        return;
+      }
+      outEl.textContent = (Math.round((nutrient / total * 100) * 10) / 10) + '%';
+    }
+
+    [totalEl, nutrientEl].forEach(function(el){
+      el.addEventListener('input', recompute);
+    });
+  })();
+
+  // ================= VERROUILLAGE DES CORRECTIONS =================
+  // Un mot de passe distinct par jeu pour afficher sa feuille de correction.
+  // Un indice (le mot de passe écrit en texte de la même couleur que le
+  // fond) est placé à côté de chaque champ : il devient lisible seulement
+  // si on le surligne avec la souris (ou Ctrl+A) — pratique pour vous
+  // en dépannage, mais gardez en tête que ce n'est PAS une vraie sécurité.
+  // ⚠️ Le fichier est du HTML/JS ordinaire : un élève qui inspecte le code
+  // source (Ctrl+U) ou sélectionne tout le texte de la page peut retrouver
+  // ces mots de passe et le contenu masqué. Ce verrou sert seulement à
+  // éviter qu'une personne tombe sur les réponses par mégarde en faisant
+  // défiler la page.
+  var ANSWER_PASSWORDS = {
+    '1': "casse-tete24", // <-- mot de passe du Jeu 1 (changez-le ici ET dans le <span class="pwd-hint"> correspondant)
+    '2': "macros24"      // <-- mot de passe du Jeu 2 (idem)
+  };
+
+  function tryUnlock(id){
+    var input = document.getElementById('pwdInput' + id);
+    if(input.value === ANSWER_PASSWORDS[id]){
+      document.getElementById('lockBar' + id).classList.add('hidden');
+      document.getElementById('answerBody' + id).classList.remove('hidden');
+      input.value = '';
+      sessionStorage.setItem('c2_unlock_' + id, '1');
+      if(id === '1') unlockJeu2();
+    } else {
+      input.value = '';
+      input.placeholder = 'Mot de passe incorrect';
+    }
+  }
+
+  // Débloque le Jeu 2 sans avoir complété le casse-tête (accès enseignant)
+  function unlockJeu2(){
+    var w = document.getElementById('jeu2-wrap');
+    if(w) w.classList.remove('locked');
+  }
+
+  function relock(id){
+    document.getElementById('answerBody' + id).classList.add('hidden');
+    var bar = document.getElementById('lockBar' + id);
+    bar.classList.remove('hidden');
+    var input = document.getElementById('pwdInput' + id);
+    input.value = '';
+    input.placeholder = 'Mot de passe';
+    sessionStorage.removeItem('c2_unlock_' + id);
+  }
+
+  // Reste déverrouillé le temps de la session du navigateur (utile si vous
+  // rechargez la page pendant que vous présentez), mais se reverrouille
+  // à la fermeture de l'onglet. Chaque jeu garde son propre état.
+  document.addEventListener('DOMContentLoaded', function(){
+    ['1','2'].forEach(function(id){
+      if(sessionStorage.getItem('c2_unlock_' + id) === '1'){
+        var body = document.getElementById('answerBody' + id);
+        var bar = document.getElementById('lockBar' + id);
+        if(body && bar){
+          body.classList.remove('hidden');
+          bar.classList.add('hidden');
+        }
+        if(id === '1') unlockJeu2();
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
