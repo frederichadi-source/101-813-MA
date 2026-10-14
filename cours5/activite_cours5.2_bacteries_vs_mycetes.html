@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TD Cours 5 : Bactéries ou mycètes ?</title>
+<style>
+  :root{
+    --navy:#123a5c; --navy-dark:#0b2740; --blue:#2f7bb0; --blue-light:#eaf3fa;
+    --teal:#2f8f8a; --bg:#f5f8fb; --card-bg:#ffffff; --border:#dbe6ee; --text:#1c2b36;
+    --ok:#2e7d4f; --ok-bg:#e6f6ec; --bad:#b3372c; --bad-bg:#fbeae8;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:"Segoe UI", Arial, sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0 0 70px 0;line-height:1.55;}
+  header{background:linear-gradient(135deg,var(--navy-dark),var(--blue));color:white;padding:34px 20px;text-align:center;}
+  header h1{margin:0 0 6px 0;font-size:1.8em;}
+  header p{margin:0;opacity:0.92;}
+  .container{max-width:1150px;margin:0 auto;padding:20px;}
+  h2.section-title{margin-top:55px;padding-bottom:8px;border-bottom:3px solid var(--blue);color:var(--navy);}
+  .instructions{background:var(--blue-light);border:1px solid #cfe1ee;border-radius:8px;padding:12px 18px;margin-top:14px;font-size:0.95em;}
+  .instructions b{color:var(--navy);}
+
+  table.key{width:100%;border-collapse:collapse;margin-top:18px;font-size:0.92em;background:var(--card-bg);}
+  table.key th{background:var(--navy);color:white;padding:9px 10px;text-align:left;}
+  table.key td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+  table.key tr:nth-child(even) td{background:#f7fafc;}
+
+  .jeu-wrap{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:16px;}
+  .progress-line{margin-top:14px;font-weight:600;color:var(--navy);}
+  .success-msg{display:none;margin-top:16px;background:var(--ok-bg);border:1px solid #b7dfc4;color:#1e5c37;padding:12px 16px;border-radius:8px;font-weight:600;}
+
+  /* ---- Tri de cartes ---- */
+  .piece-bank{display:flex;flex-wrap:wrap;gap:10px;padding:14px;background:#f5f8fb;border:1px dashed #bcd0e0;border-radius:8px;margin-bottom:20px;min-height:70px;}
+  .piece{background:white;border:2px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;user-select:none;font-size:0.88em;max-width:290px;transition:transform .15s, box-shadow .15s;}
+  .piece:hover{border-color:var(--blue);box-shadow:0 2px 6px rgba(0,0,0,0.12);}
+  .piece.selected{border-color:var(--blue);background:var(--blue-light);box-shadow:0 0 0 3px rgba(47,123,176,0.25);transform:translateY(-2px);}
+  .bins{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .bin{background:#fbfdff;border:2px solid var(--border);border-radius:10px;padding:12px;min-height:160px;cursor:pointer;}
+  .bin h4{margin:0 0 10px 0;text-align:center;color:var(--navy);border-bottom:2px solid var(--blue);padding-bottom:6px;}
+  .bin.shake{animation:shake .35s;}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+  .placed-piece{display:block;background:var(--ok-bg);border:1px solid #b7dfc4;border-radius:6px;padding:4px 8px;margin:4px 0;font-size:0.82em;color:#1e5c37;}
+
+  /* ---- Questions à choix ---- */
+  .qcard{background:#fbfdff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .qnum{font-size:0.75em;text-transform:uppercase;letter-spacing:.05em;color:#6b7c88;font-weight:700;}
+  .qtext{font-weight:600;color:var(--navy);margin:2px 0 6px 0;}
+  .qcond{background:#fff;border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:6px;padding:6px 10px;margin:6px 0 10px 0;font-size:0.9em;}
+  .qopts{display:flex;flex-wrap:wrap;gap:8px;}
+  .opt{font:inherit;font-size:0.9em;background:white;border:2px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;text-align:left;}
+  .opt:hover:not(:disabled){border-color:var(--blue);}
+  .opt.right{background:var(--ok-bg);border-color:var(--ok);color:#1e5c37;font-weight:600;}
+  .opt.wrong{background:var(--bad-bg);border-color:var(--bad);color:var(--bad);}
+  .opt.picked{background:var(--blue-light);border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,123,176,0.25);}
+  .opt:disabled{cursor:default;opacity:0.75;}
+  .opt.wrong:disabled{opacity:1;}
+  .btn:disabled{opacity:0.45;cursor:not-allowed;}
+  .btn:disabled:hover{background:var(--navy);}
+  .success-msg.partial{background:var(--blue-light);border-color:#cfe1ee;color:var(--navy);}
+  .opt.right:disabled{opacity:1;}
+  .qfb{display:none;margin-top:10px;padding:8px 12px;border-radius:6px;font-size:0.9em;}
+  .qfb.show{display:block;}
+  .qfb.ok{background:var(--ok-bg);border:1px solid #b7dfc4;color:#1e5c37;}
+  .qfb.bad{background:var(--bad-bg);border:1px solid #efc3be;color:var(--bad);}
+
+  /* ---- Tables avec menus ---- */
+  table.sel-table{width:100%;border-collapse:collapse;margin-top:18px;background:white;}
+  table.sel-table th{background:var(--navy);color:white;padding:9px 10px;text-align:left;}
+  table.sel-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  table.sel-table tr:nth-child(even) td{background:#f7fafc;}
+  table.sel-table .clue{color:#55677a;font-size:0.9em;}
+  select.s{padding:5px 8px;border-radius:6px;border:1px solid #aac2d4;font-size:0.92em;min-width:210px;}
+  select.s.correct{border:2px solid var(--ok);background:var(--ok-bg);}
+  select.s.incorrect{border:2px solid var(--bad);background:var(--bad-bg);}
+
+  .btn{display:inline-block;margin-top:16px;background:var(--navy);color:white;border:none;padding:10px 22px;border-radius:6px;font-size:0.95em;font-weight:600;cursor:pointer;}
+  .btn:hover{background:var(--blue);}
+  .result-line{margin-top:14px;font-weight:600;color:var(--navy);}
+
+  /* ---- Corrigés verrouillés ---- */
+  .answer-key{margin-top:50px;border:2px dashed var(--teal);border-radius:10px;padding:20px;background:#f0faf8;}
+  .answer-key h2{color:var(--teal);border-bottom:2px solid var(--teal);margin-top:0;}
+  .hidden{display:none !important;}
+  .toggle-btn{display:inline-block;margin-top:15px;margin-right:10px;padding:8px 16px;background:var(--teal);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.95em;}
+  .toggle-btn.secondary{background:var(--navy);}
+  .lock-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;background:#e6f6f4;border:1px dashed var(--teal);border-radius:8px;padding:14px 18px;color:var(--teal);font-weight:600;}
+  .unlock-form{display:flex;gap:8px;align-items:center;}
+  .unlock-form input[type="password"]{border:1px solid #a9d8d3;border-radius:6px;padding:6px 10px;font-size:0.95em;min-width:160px;}
+  .unlock-form .toggle-btn{margin:0;}
+  .pwd-hint{color:#e6f6f4;background:#e6f6f4;user-select:all;-webkit-user-select:all;font-size:0.85em;padding:2px 8px;border-radius:4px;cursor:text;}
+  .pwd-hint::selection{background:#39383a;color:#fff;}
+  .pwd-hint::-moz-selection{background:#39383a;color:#fff;}
+  .relock-btn{float:right;font-size:0.8em;padding:5px 12px;}
+  .note-small{font-size:0.85em;color:#888;margin-top:10px;}
+
+  .bins.four{grid-template-columns:repeat(4,1fr);}
+  @media (max-width:1000px){ .bins.four{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:800px){
+    .bins,.bins.four{grid-template-columns:1fr;}
+    select.s{min-width:150px;}
+    header h1{font-size:1.4em;}
+  }
+
+</style>
+<style>
+#sn-bar{font:14px/1.4 "Segoe UI",Arial,sans-serif;background:#1d3a52;color:#fff;margin:0;padding:8px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;box-sizing:border-box;position:relative;z-index:30;}
+#sn-bar *{box-sizing:border-box;}
+#sn-bar a{color:#fff;text-decoration:none;font-weight:600;padding:5px 11px;border-radius:7px;background:rgba(255,255,255,.12);white-space:nowrap;}
+#sn-bar a:hover{background:rgba(255,255,255,.26);}
+#sn-bar .sn-cur{opacity:.85;font-size:.92em;margin-right:auto;}
+#sn-bar details{position:relative;}
+#sn-bar summary{cursor:pointer;list-style:none;font-weight:600;padding:5px 11px;border-radius:7px;background:rgba(255,255,255,.12);user-select:none;}
+#sn-bar summary::-webkit-details-marker{display:none;}
+#sn-bar summary:hover,#sn-bar details[open] summary{background:rgba(255,255,255,.26);}
+#sn-bar .sn-menu{position:absolute;right:0;top:calc(100% + 6px);width:min(430px,92vw);max-height:75vh;overflow:auto;background:#fff;color:#1d2b36;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);padding:8px 0;z-index:40;}
+#sn-bar .sn-menu a{display:block;background:none;color:#1d3a52;border-radius:0;padding:6px 16px;white-space:normal;font-weight:500;}
+#sn-bar .sn-menu a:hover{background:#e8f1f8;}
+#sn-bar .sn-menu a.on{background:#dcebf6;font-weight:700;}
+#sn-bar .sn-menu .sn-co{margin:6px 0 8px 12px;border-left:6px solid var(--cc,#5b7183);}
+#sn-bar .sn-menu b{display:block;padding:4px 16px 2px;color:var(--cn,#5b7183);font-size:.8em;text-transform:uppercase;letter-spacing:.04em;}
+#sn-bar .sn-menu .sn-co a:hover{background:var(--cl,#e8f1f8);}
+#sn-bar .sn-menu .sn-co a.on{background:var(--cl,#dcebf6);font-weight:700;}
+#sn-bar .sn-menu small{display:inline-block;margin-right:8px;background:#2a9d8f;color:#fff;border-radius:5px;padding:1px 8px;text-align:center;font-size:.8em;font-weight:600;white-space:nowrap;}
+#sn-bar .sn-menu small.sn-nt{background:#1d3a52;}
+#sn-bar .sn-menu small.sn-lab{background:#8a5a9a;}
+@media print{#sn-bar{display:none !important;}}
+</style>
+</head>
+<body>
+<div id="sn-bar" style="background:#0f3636;border-bottom:5px solid #2d9d9f"><span class="sn-cur">101-813-MA · Activité 5.2</span><a href="../index.html">← Accueil</a><a href="../cours5/notes.html">Notes du cours 5</a><details><summary>☰ Tout le site</summary><div class="sn-menu"><div class="sn-co" style="--cc:#e0d8b8;--co:#1c2b36;--cn:#564e2e;--cd:#35311d;--cl:#f6f5ee"><b>Cours 1 · Introduction à la biologie</b><a href="../cours1/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours1/activite_cours1.1_microorganismes.html"><small>Activité 1.1</small>Diversité des microorganismes</a></div><div class="sn-co" style="--cc:#0070c0;--co:#ffffff;--cn:#00528d;--cd:#003357;--cl:#ebf3f9"><b>Cours 2 · Les molécules du vivant</b><a href="../cours2/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours2/activite_cours2.1_macronutriments.html"><small>Activité 2.1</small>Glucides, lipides et protéines</a></div><div class="sn-co" style="--cc:#b3a2ba;--co:#1c2b36;--cn:#5a4861;--cd:#382d3c;--cl:#f3f0f4"><b>Cours 3 · Le modèle cellulaire et l'écologie microbienne</b><a href="../cours3/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a></div><div class="sn-co" style="--cc:#166082;--co:#ffffff;--cn:#135371;--cd:#0c3446;--cl:#ebf5f9"><b>Cours 4 · Les bactéries</b><a href="../cours4/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours4/activite_cours4.1_bacteries.html"><small>Activité 4.1</small>Les bactéries : formes et pathogènes alimentaires</a></div><div class="sn-co" style="--cc:#2d9d9f;--co:#ffffff;--cn:#195657;--cd:#0f3636;--cl:#ebf9f9"><b>Cours 5 · Les mycètes</b><a href="../cours5/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours5/activite_cours5.1_qui_pousse_ou.html"><small>Activité 5.1</small>Qui pousse où ? pH et température</a><a href="../cours5/activite_cours5.2_bacteries_vs_mycetes.html" class="on"><small>Activité 5.2</small>Bactéries ou mycètes ?</a><a href="../cours5/activite_cours5.3_enquete.html"><small>Activité 5.3</small>Enquête : aliment altéré ou intoxication ?</a></div><div class="sn-co" style="--cc:#c32423;--co:#ffffff;--cn:#9c1d1c;--cd:#611211;--cl:#f9ebeb"><b>Cours 6 · Les virus et autres parasites</b><a href="../cours6/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours6/activite_cours6.1_parasitisme_et_groupes.html"><small>Activité 6.1</small>Parasitisme et groupes d'organismes</a><a href="../cours6/activite_cours6.2_virus.html"><small>Activité 6.2</small>Les virus, de la cellule à l'assiette</a><a href="../cours6/activite_cours6.3_vers_parasites.html"><small>Activité 6.3</small>Les vers parasites, de l'assiette à l'organisme</a></div><div class="sn-co" style="--cc:#d9822b;--co:#1c2b36;--cn:#754515;--cd:#482b0d;--cl:#f9f2eb"><b>Cours 7 · La qualité : échantillonnage et normes</b><a href="../cours7/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours7/activite_cours7.1_danger_et_prelevement.html"><small>Activité 7.1</small>Danger, échantillon et prélèvement</a><a href="../cours7/activite_cours7.2_les_normes.html"><small>Activité 7.2</small>Lire une norme microbiologique</a><a href="../cours7/activite_cours7.3_dilutions.html"><small>Activité 7.3</small>Comprendre les dilutions</a></div><div class="sn-co" style="--cc:#5b8c3e;--co:#ffffff;--cn:#395727;--cd:#233618;--cl:#f1f7ed"><b>Cours 8 · La qualité : indicateurs et identification</b><a href="../cours8/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours8/activite_cours8.1_indicateurs.html"><small>Activité 8.1</small>Les organismes indicateurs</a><a href="../cours8/activite_cours8.2_identifier.html"><small>Activité 8.2</small>Identifier un microorganisme</a></div><div class="sn-co" style="--cc:#8a5a9a;--co:#fff;--cn:#6d4479;--cd:#6d4479;--cl:#f3ecf6"><b>🔬 Laboratoires</b><a href="../labos/fiches-labos.html"><small class="sn-lab">🧪 Labos</small>Fiches de mise en contexte des laboratoires</a></div></div></details></div>
+
+
+<header>
+  <h1>Travaux Dirigés — Cours 5 : Bactéries ou mycètes ?</h1>
+  <p>101-813-MA — Introduction à la microbiologie alimentaire</p>
+</header>
+
+<div class="container">
+  <p class="instructions">
+    <b>Avant de commencer :</b> ces quatre jeux comparent les <b>bactéries</b> (Cours 4) et les <b>mycètes</b> — levures et moisissures (Cours 5). Aucun jeu ne vous donne la réponse dans son énoncé : servez-vous de vos notes, de vos diapositives (dont « Le pH » et « La température »), du tableau « forme, Gram et pathogénicité » du Cours 4 et du tableau des microorganismes alimentaires du Cours 3.
+  </p>
+
+  <h2 class="section-title">Jeu 1 — Bactérie, mycète, les deux… ou aucun ?</h2>
+  <p class="instructions">Cliquez sur une carte, puis cliquez sur la case où elle appartient : <b>Bactéries seulement</b>, <b>Mycètes seulement</b>, <b>Les deux</b> (caractéristique partagée) ou <b>Ni l'un ni l'autre</b> (ce qui n'est ni une bactérie ni un mycète, ou qui ne peut pas exister). Si c'est correct, la carte se place dans la case ; sinon, la case tremble et vous pouvez réessayer.</p>
+  <div class="jeu-wrap">
+    <div class="piece-bank" id="piece-bank"></div>
+    <div class="bins four">
+      <div class="bin" data-cat="bact"><h4>Bactéries seulement</h4><div class="bin-content"></div></div>
+      <div class="bin" data-cat="myc"><h4>Mycètes seulement</h4><div class="bin-content"></div></div>
+      <div class="bin" data-cat="both"><h4>Les deux</h4><div class="bin-content"></div></div>
+      <div class="bin" data-cat="none"><h4>Ni l'un ni l'autre</h4><div class="bin-content"></div></div>
+    </div>
+    <div class="progress-line" id="jeu1-progress"></div>
+    <div class="success-msg" id="jeu1-success">🎉 Bravo, toutes les cartes sont correctement classées !</div>
+  </div>
+
+  <div class="answer-key" id="answerKey1">
+    <div class="lock-bar" id="lockBar1">
+      <span>🔒 Corrections masquées — réservées à l'enseignant</span>
+      <div class="unlock-form">
+        <input type="password" id="pwdInput1" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')tryUnlock('1')">
+        <button class="toggle-btn" onclick="tryUnlock('1')">Afficher</button>
+        <span class="pwd-hint" title="Surlignez pour révéler">procaryote24</span>
+      </div>
+    </div>
+    <div class="answer-body hidden" id="answerBody1">
+    <button class="toggle-btn secondary relock-btn" onclick="relock('1')">🔒 Masquer à nouveau</button>
+    <h2>Feuille de correction — Jeu 1 (enseignant)</h2>
+    <table class="key">
+      <thead><tr id="key1-h"></tr></thead>
+      <tbody id="key1-body"></tbody>
+    </table>
+    <p class="note-small">Les cartes ne nomment jamais le groupe : l'étudiant doit reconnaître la caractéristique. Les cartes de pH et de température s'appuient sur les diapositives « Le pH » et « La température » (optimum des bactéries : pH 6,5–7,5 ; des mycètes : pH 5–6 ; mésophiles 30–45 °C ; levures et moisissures 20–30 °C). Dans « Les deux » : <i>Penicillium</i> et les bactéries filamenteuses (Cours 4) produisent des antibiotiques ; <i>Listeria</i>, <i>Pseudomonas</i>, <i>Penicillium</i> croissent au froid (tableau pH/température du Cours 3). Dans « Ni l'un ni l'autre » : le bicarbonate de soude est non vivant (diapositive sur la levure chimique) ; les deux autres cartes décrivent des combinaisons impossibles (procaryote avec organites ; pluricellulaire avec paroi de peptidoglycane, alors que les bactéries sont toujours unicellulaires).</p>
+
+    </div>
+  </div>
+
+  <h2 class="section-title">Jeu 2 — Bactérie Gram+, bactérie Gram−, levure ou moisissure ?</h2>
+  <p class="instructions">Pour chaque microorganisme, choisissez son groupe. Pour les bactéries, précisez le résultat de la coloration de Gram (Cours 4). Aucun indice n'est fourni : consultez vos notes. Cliquez ensuite sur « Vérifier mes réponses ».</p>
+  <div class="jeu-wrap">
+    <table class="sel-table">
+      <thead><tr><th>Microorganisme</th><th>Son groupe</th></tr></thead>
+      <tbody id="jeu2-body"></tbody>
+    </table>
+    <button class="btn" id="jeu2-check">Vérifier mes réponses</button>
+    <div class="result-line" id="jeu2-result"></div>
+  </div>
+
+  <div class="answer-key" id="answerKey2">
+    <div class="lock-bar" id="lockBar2">
+      <span>🔒 Corrections masquées — réservées à l'enseignant</span>
+      <div class="unlock-form">
+        <input type="password" id="pwdInput2" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')tryUnlock('2')">
+        <button class="toggle-btn" onclick="tryUnlock('2')">Afficher</button>
+        <span class="pwd-hint" title="Surlignez pour révéler">domaines24</span>
+      </div>
+    </div>
+    <div class="answer-body hidden" id="answerBody2">
+    <button class="toggle-btn secondary relock-btn" onclick="relock('2')">🔒 Masquer à nouveau</button>
+    <h2>Feuille de correction — Jeu 2 (enseignant)</h2>
+    <table class="key">
+      <thead><tr><th>Microorganisme</th><th>Groupe attendu</th></tr></thead>
+      <tbody id="key2-body"></tbody>
+    </table>
+    <p class="note-small">Gram : tableau récapitulatif « forme, Gram et pathogénicité » du Cours 4 (bactéries lactiques Gram+ ; bactéries acétiques Gram−…). Levures et moisissures : diapositives et notes du Cours 5 (<i>S. cerevisiae</i> et <i>Candida</i> : levures ; <i>Penicillium</i>, <i>Aspergillus</i>, <i>Rhizopus</i>, <i>Fusarium</i> : moisissures). Les mycètes n'ont pas de résultat de Gram (pas de peptidoglycane).</p>
+
+    </div>
+  </div>
+
+  <h2 class="section-title">Jeu 3 — Trouvez l'intrus</h2>
+  <p class="instructions">Dans chaque groupe de quatre, trois éléments partagent une caractéristique que le quatrième n'a pas. À vous de trouver <b>l'intrus</b> — et la caractéristique commune, qui est révélée après la bonne réponse. Une mauvaise réponse se colore en rouge : réessayez.</p>
+  <div class="jeu-wrap">
+    <div id="jeu3-quiz"></div>
+    <div class="progress-line" id="jeu3-progress"></div>
+    <div class="success-msg" id="jeu3-success">🎉 Bravo, tous les intrus sont démasqués !</div>
+  </div>
+
+  <div class="answer-key" id="answerKey3">
+    <div class="lock-bar" id="lockBar3">
+      <span>🔒 Corrections masquées — réservées à l'enseignant</span>
+      <div class="unlock-form">
+        <input type="password" id="pwdInput3" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')tryUnlock('3')">
+        <button class="toggle-btn" onclick="tryUnlock('3')">Afficher</button>
+        <span class="pwd-hint" title="Surlignez pour révéler">intrus24</span>
+      </div>
+    </div>
+    <div class="answer-body hidden" id="answerBody3">
+    <button class="toggle-btn secondary relock-btn" onclick="relock('3')">🔒 Masquer à nouveau</button>
+    <h2>Feuille de correction — Jeu 3 (enseignant)</h2>
+    <table class="key">
+      <thead><tr><th>Les quatre éléments</th><th>Intrus</th><th>Caractéristique commune</th></tr></thead>
+      <tbody id="key3-body"></tbody>
+    </table>
+    <p class="note-small">L'ordre des options est mélangé à chaque chargement de la page.</p>
+
+    </div>
+  </div>
+
+  <h2 class="section-title">Jeu 4 — Vrai ou faux ?</h2>
+  <p class="instructions">Attention aux nuances : plusieurs énoncés ressemblent à ce qui a été vu en classe, mais ont été légèrement modifiés. Répondez <b>Vrai</b> ou <b>Faux</b> à chaque énoncé, puis cliquez sur <b>« Valider mes réponses »</b> : les réponses fausses sont marquées en rouge, sans la bonne réponse. Corrigez-les, puis validez à nouveau.</p>
+  <div class="jeu-wrap">
+    <div id="jeu4-quiz"></div>
+    <div class="progress-line" id="jeu4-progress"></div>
+    <div class="success-msg" id="jeu4-success">🎉 Vous avez répondu à tous les énoncés !</div>
+  </div>
+
+  <div class="answer-key" id="answerKey4">
+    <div class="lock-bar" id="lockBar4">
+      <span>🔒 Corrections masquées — réservées à l'enseignant</span>
+      <div class="unlock-form">
+        <input type="password" id="pwdInput4" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')tryUnlock('4')">
+        <button class="toggle-btn" onclick="tryUnlock('4')">Afficher</button>
+        <span class="pwd-hint" title="Surlignez pour révéler">vraifaux24</span>
+      </div>
+    </div>
+    <div class="answer-body hidden" id="answerBody4">
+    <button class="toggle-btn secondary relock-btn" onclick="relock('4')">🔒 Masquer à nouveau</button>
+    <h2>Feuille de correction — Jeu 4 (enseignant)</h2>
+    <table class="key">
+      <thead><tr><th>Énoncé</th><th>Réponse</th><th>Justification</th></tr></thead>
+      <tbody id="key4-body"></tbody>
+    </table>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+const ANSWER_PASSWORDS = {"1": "procaryote24", "2": "domaines24", "3": "intrus24", "4": "vraifaux24"};
+const STORE_PREFIX = "c5A_unlock_";
+
+function shuffle(a){ return [...a].sort(()=>Math.random()-0.5); }
+
+// ---------- Questions à choix (QCM, vrai/faux, duels) ----------
+// cfg: {el, items:[{q, cond?, options:[...], answer:idx, explain}], shuffleOptions, noRetry, prefix, progressId, successId, successText}
+function buildQuiz(cfg){
+  if(cfg.validate){ return buildValidatedQuiz(cfg); }
+  const root = document.getElementById(cfg.el);
+  const progress = document.getElementById(cfg.progressId);
+  const success = document.getElementById(cfg.successId);
+  const total = cfg.items.length;
+  let solved = 0, firstTry = 0;
+  function update(){
+    progress.textContent = solved + ' / ' + total + ' réponses trouvées (' + firstTry + ' du premier coup)';
+    if(solved === total){ success.style.display = 'block'; }
+  }
+  update();
+  cfg.items.forEach((it,i)=>{
+    const card = document.createElement('div');
+    card.className = 'qcard';
+    card.innerHTML =
+      '<div class="qnum">' + (cfg.prefix || 'Question') + ' ' + (i+1) + '</div>' +
+      '<div class="qtext">' + it.q + '</div>' +
+      (it.cond ? '<div class="qcond">' + it.cond + '</div>' : '') +
+      '<div class="qopts"></div><div class="qfb"></div>';
+    const box = card.querySelector('.qopts'), fb = card.querySelector('.qfb');
+    let opts = it.options.map((t,idx)=>({t:t, idx:idx}));
+    if(cfg.shuffleOptions) opts = shuffle(opts);
+    let done = false, attempts = 0;
+    function finish(rightBtn, ok){
+      done = true; solved++;
+      if(ok && attempts === 0) firstTry++;
+      box.querySelectorAll('.opt').forEach(x=>{ x.disabled = true; });
+      rightBtn.classList.add('right');
+      fb.className = 'qfb show ok';
+      fb.innerHTML = (ok ? '✅ ' : 'ℹ️ Bonne réponse : « ' + rightBtn.textContent + ' ». ') + it.explain;
+      update();
+    }
+    const btns = [];
+    opts.forEach(o=>{
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'opt'; b.innerHTML = o.t;
+      b.addEventListener('click', ()=>{
+        if(done) return;
+        if(o.idx === it.answer){ finish(b, true); }
+        else if(cfg.noRetry){
+          b.classList.add('wrong');
+          finish(btns.find(x=>x._idx === it.answer), false);
+        } else {
+          attempts++;
+          b.classList.add('wrong'); b.disabled = true;
+          fb.className = 'qfb show bad';
+          fb.textContent = 'Pas tout à fait — réessayez.';
+        }
+      });
+      b._idx = o.idx;
+      btns.push(b);
+      box.appendChild(b);
+    });
+    root.appendChild(card);
+  });
+}
+
+const HINTS = {"jeu4-quiz": [["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Vérifiez combien de cellules composent une levure, en la comparant aux moisissures."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Distinguez ce qui multiplie le nombre de cellules de ce qui échange seulement du matériel génétique entre cellules existantes."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Rappelez-vous quel type de division cellulaire accompagne la reproduction asexuée des mycètes, et lequel est lié à la reproduction sexuée."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Demandez-vous dans quelles conditions du milieu les mycètes recourent à la reproduction sexuée plutôt qu'à la reproduction asexuée."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Vérifiez la plage de température optimale des moisissures et comparez-la à celle des bactéries mésophiles pathogènes."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Pensez à la tolérance des bactéries et des mycètes à un pH de 3 à 4, comme dans les confitures et marinades."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Rappelez-vous ce que le mot facultatif implique quant à la dépendance à l'oxygène et aux autres façons d'obtenir de l'énergie."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Pensez à ce que certaines levures peuvent faire du glucose lorsque l'oxygène est absent."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Vérifiez la résistance des mycotoxines à la chaleur et à l'acidité, notamment après destruction de la moisissure."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Demandez-vous si les levures font partie des mycètes producteurs de toxines ou si elles altèrent les aliments autrement."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Comparez la composition chimique de la paroi des bactéries Gram+ avec celle de la paroi des mycètes."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Rappelez-vous la distinction entre hyphes végétatifs et hyphes aériens, ainsi que le rôle propre à chacun."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Distinguez la partie aérienne visible d'une moisissure de son mycélium végétatif, et situez ce dernier par rapport à l'aliment."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Pensez aux microorganismes capables de croître à basse température, avec des exemples chez les bactéries comme chez les moisissures."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Pensez aux structures cellulaires présentes chez les procaryotes et chez les eucaryotes, puis situez-y les ribosomes."], ["le tableau de synthèse et les parties 3, 5 et 6 des notes du Cours 5", "Pensez à l'origine du CO₂ libéré par cette poudre : métabolisme d'un être vivant ou autre phénomène ?"]]};
+// Indices : 1re erreur sur une question = renvoi aux notes; 2e erreur = piste de contenu (sans la réponse).
+function hintHtml(h1, h2, n){
+  let r = '';
+  if(h1) r += '<br>💡 <b>Indice :</b> relisez ' + h1 + '.';
+  if(n >= 2 && h2) r += '<br>🔎 <b>Piste :</b> ' + h2;
+  return r;
+}
+
+// ---------- Questionnaire à validation répétée ----------
+// Une réponse par question, puis « Valider » : les réponses fausses sont marquées en rouge
+// SANS montrer la bonne réponse. L'élève choisit une autre réponse et valide à nouveau.
+// Les bonnes réponses sont verrouillées en vert, avec leur explication.
+function buildValidatedQuiz(cfg){
+  const root = document.getElementById(cfg.el);
+  const progress = document.getElementById(cfg.progressId);
+  const success = document.getElementById(cfg.successId);
+  const total = cfg.items.length;
+  const st = [];
+  let tries = 0, finished = false, lastMsg = '';
+  const vbtn = document.createElement('button');
+  vbtn.type = 'button'; vbtn.className = 'btn'; vbtn.textContent = 'Valider mes réponses'; vbtn.disabled = true;
+  function answeredCount(){ return st.filter(s=>s.picked !== null).length; }
+  function refresh(){
+    if(finished) return;
+    const n = answeredCount();
+    if(tries === 0) progress.textContent = n + ' / ' + total + ' questions répondues' + (n < total ? ' — répondez à toutes les questions pour pouvoir valider.' : ' — vous pouvez valider.');
+    else progress.textContent = n < total ? lastMsg : 'Vous pouvez valider à nouveau.';
+    vbtn.disabled = n < total;
+  }
+  cfg.items.forEach((it,i)=>{
+    const card = document.createElement('div');
+    card.className = 'qcard';
+    card.innerHTML =
+      '<div class="qnum">' + (cfg.prefix || 'Question') + ' ' + (i+1) + '</div>' +
+      '<div class="qtext">' + it.q + '</div>' +
+      (it.cond ? '<div class="qcond">' + it.cond + '</div>' : '') +
+      '<div class="qopts"></div><div class="qfb"></div>';
+    const box = card.querySelector('.qopts');
+    let opts = it.options.map((t,idx)=>({t:t, idx:idx}));
+    if(cfg.shuffleOptions) opts = shuffle(opts);
+    const s = {picked:null, locked:false, fails:0, btns:[], fb:card.querySelector('.qfb')};
+    st.push(s);
+    opts.forEach(o=>{
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'opt'; b.innerHTML = o.t; b._idx = o.idx;
+      b.addEventListener('click', ()=>{
+        if(finished || s.locked || b.disabled) return;
+        s.picked = o.idx;
+        s.btns.forEach(x=>x.classList.toggle('picked', x === b));
+        s.fb.className = 'qfb'; s.fb.innerHTML = '';
+        refresh();
+      });
+      s.btns.push(b); box.appendChild(b);
+    });
+    root.appendChild(card);
+  });
+  const wrap = document.createElement('div');
+  wrap.appendChild(vbtn);
+  root.appendChild(wrap);
+  vbtn.addEventListener('click', ()=>{
+    if(finished || answeredCount() < total) return;
+    tries++; vbtn.textContent = 'Valider à nouveau';
+    let score = 0;
+    cfg.items.forEach((it,i)=>{
+      const s = st[i];
+      if(s.locked){ score++; return; }
+      if(s.picked === it.answer){
+        score++; s.locked = true;
+        s.btns.forEach(b=>{ b.disabled = true; b.classList.remove('picked'); if(b._idx === it.answer) b.classList.add('right'); });
+        s.fb.className = 'qfb show ok';
+        s.fb.innerHTML = '✅ Bonne réponse. ' + it.explain;
+      } else {
+        s.btns.forEach(b=>{ if(b._idx === s.picked){ b.classList.remove('picked'); b.classList.add('wrong'); b.disabled = true; } });
+        s.picked = null; s.fails++;
+        const hh = (typeof HINTS !== 'undefined' && HINTS[cfg.el] && HINTS[cfg.el][i]) || [];
+        s.fb.className = 'qfb show bad';
+        s.fb.innerHTML = '❌ Ce n’est pas la bonne réponse.' + hintHtml(hh[0], hh[1], s.fails) + '<br>Choisissez une autre réponse, puis validez à nouveau.';
+      }
+    });
+    if(score === total){
+      finished = true; vbtn.disabled = true;
+      progress.textContent = 'Score : ' + total + ' / ' + total;
+      success.textContent = '🎯 Toutes les réponses sont bonnes' + (tries === 1 ? ' dès la première validation — parfait !' : ' après ' + tries + ' validations. Relisez les explications des questions qui vous ont demandé plusieurs essais.');
+      success.classList.remove('partial');
+      success.style.display = 'block';
+    } else {
+      lastMsg = 'Validation ' + tries + ' : ' + score + ' / ' + total + ' bonne' + (score > 1 ? 's' : '') + ' réponse' + (score > 1 ? 's' : '') + '. Corrigez les réponses marquées en rouge (' + (total - score) + ' à refaire), puis validez à nouveau.';
+      vbtn.disabled = true; progress.textContent = lastMsg;
+    }
+  });
+  refresh();
+}
+// ---------- Verrouillage des corrigés ----------
+// ⚠️ Le fichier est du HTML/JS ordinaire : un élève qui inspecte le code source
+// (Ctrl+U) ou sélectionne tout le texte de la page peut retrouver ces mots de
+// passe et le contenu masqué. Ce verrou sert seulement à éviter qu'une personne
+// tombe sur les réponses par mégarde en faisant défiler la page.
+function tryUnlock(id){
+  const input = document.getElementById('pwdInput' + id);
+  if(input.value === ANSWER_PASSWORDS[id]){
+    document.getElementById('lockBar' + id).classList.add('hidden');
+    document.getElementById('answerBody' + id).classList.remove('hidden');
+    input.value = '';
+    try{ sessionStorage.setItem(STORE_PREFIX + id, '1'); }catch(e){}
+  } else {
+    input.value = '';
+    input.placeholder = 'Mot de passe incorrect';
+  }
+}
+function relock(id){
+  document.getElementById('answerBody' + id).classList.add('hidden');
+  document.getElementById('lockBar' + id).classList.remove('hidden');
+  const input = document.getElementById('pwdInput' + id);
+  input.value = ''; input.placeholder = 'Mot de passe';
+  try{ sessionStorage.removeItem(STORE_PREFIX + id); }catch(e){}
+}
+document.addEventListener('DOMContentLoaded', function(){
+  Object.keys(ANSWER_PASSWORDS).forEach(function(id){
+    let on = null;
+    try{ on = sessionStorage.getItem(STORE_PREFIX + id); }catch(e){}
+    if(on === '1'){
+      document.getElementById('answerBody' + id).classList.remove('hidden');
+      document.getElementById('lockBar' + id).classList.add('hidden');
+    }
+  });
+});
+
+// ---------- Jeu 1 : tri de caractéristiques (4 cases) ----------
+const CARDS = [
+  // Bactéries seulement
+  {cat:'bact', t:"L'ADN est regroupé dans un nucléoïde, sans enveloppe nucléaire"},
+  {cat:'bact', t:"Sa paroi est faite surtout de peptidoglycane"},
+  {cat:'bact', t:"Se multiplie par fission binaire"},
+  {cat:'bact', t:"Peut transférer un plasmide à une autre cellule grâce à un pilus"},
+  {cat:'bact', t:"Se classe selon la coloration de Gram (violet ou rose)"},
+  {cat:'bact', t:"Se décrit par sa forme : coque, bacille, spirale, vibrion…"},
+  {cat:'bact', t:"Optimum de croissance autour de pH 6,5–7,5"},
+  {cat:'bact', t:"Optimum de croissance entre 30 et 45 °C (pathogènes humains)"},
+  {cat:'bact', t:"Cellule d'environ 1 à 5 µm"},
+  // Mycètes seulement
+  {cat:'myc', t:"L'ADN est enfermé dans un vrai noyau"},
+  {cat:'myc', t:"Possède des organites membranaires comme les mitochondries"},
+  {cat:'myc', t:"Sa paroi est riche en chitine"},
+  {cat:'myc', t:"Se reproduit par bourgeonnement"},
+  {cat:'myc', t:"Forme un réseau de filaments (hyphes) appelé mycélium"},
+  {cat:'myc', t:"Produit des conidies ou des sporanges au bout de filaments aériens"},
+  {cat:'myc', t:"Optimum de croissance à pH 5–6 et entre 20 et 30 °C"},
+  {cat:'myc', t:"Croît encore à pH 3–4, là où presque toutes les autres cellules sont très inhibées"},
+  {cat:'myc', t:"Peut produire des toxines qui survivent à la cuisson"},
+  // Les deux
+  {cat:'both', t:"Peut altérer un aliment"},
+  {cat:'both', t:"Peut être utile en fermentation"},
+  {cat:'both', t:"Certaines espèces croissent encore entre 0 et 10 °C"},
+  {cat:'both', t:"Peut produire un antibiotique"},
+  {cat:'both', t:"Peut causer une maladie chez l'humain"},
+  {cat:'both', t:"La plupart des cellules sont détruites à plus de 60 °C"},
+  // Ni l'un ni l'autre
+  {cat:'none', t:"Le bicarbonate de soude utilisé comme « levure chimique »"},
+  {cat:'none', t:"Une cellule procaryote dotée de mitochondries"},
+  {cat:'none', t:"Un organisme pluricellulaire dont la paroi est faite de peptidoglycane"},
+];
+const bank = document.getElementById('piece-bank');
+let placed = 0, selectedCard = null;
+function updJeu1(){ document.getElementById('jeu1-progress').textContent = placed + ' / ' + CARDS.length + ' cartes placées'; }
+updJeu1();
+shuffle(CARDS).forEach(c=>{
+  const div = document.createElement('div');
+  div.className = 'piece';
+  div.textContent = c.t;
+  div.addEventListener('click', ()=>{
+    document.querySelectorAll('.piece.selected').forEach(p=>p.classList.remove('selected'));
+    div.classList.add('selected');
+    selectedCard = c;
+  });
+  c._el = div;
+  bank.appendChild(div);
+});
+document.querySelectorAll('.bin').forEach(bin=>{
+  bin.addEventListener('click', ()=>{
+    if(!selectedCard) return;
+    if(selectedCard.cat === bin.dataset.cat){
+      selectedCard._el.remove();
+      const p = document.createElement('span');
+      p.className = 'placed-piece'; p.textContent = selectedCard.t;
+      bin.querySelector('.bin-content').appendChild(p);
+      placed++; updJeu1();
+      if(placed === CARDS.length) document.getElementById('jeu1-success').style.display = 'block';
+      selectedCard = null;
+    } else {
+      bin.classList.remove('shake'); void bin.offsetWidth; bin.classList.add('shake');
+    }
+  });
+});
+
+// ---------- Jeu 2 : quel groupe ? (sans indice) ----------
+const GROUPS = [
+  {v:'gp', t:'Bactérie Gram +'},
+  {v:'gn', t:'Bactérie Gram −'},
+  {v:'lev', t:'Levure'},
+  {v:'moi', t:'Moisissure'},
+];
+const ORGS = [
+  {n:'<i>Salmonella</i>', g:'gn'},
+  {n:'<i>Staphylococcus aureus</i>', g:'gp'},
+  {n:'<i>Listeria monocytogenes</i>', g:'gp'},
+  {n:'<i>Clostridium botulinum</i>', g:'gp'},
+  {n:'<i>E. coli</i>', g:'gn'},
+  {n:'<i>Pseudomonas</i>', g:'gn'},
+  {n:'<i>Bacillus cereus</i>', g:'gp'},
+  {n:'Bactéries lactiques', g:'gp'},
+  {n:'Bactéries acétiques', g:'gn'},
+  {n:'<i>Saccharomyces cerevisiae</i>', g:'lev'},
+  {n:'<i>Candida</i>', g:'lev'},
+  {n:'<i>Penicillium</i>', g:'moi'},
+  {n:'<i>Aspergillus</i>', g:'moi'},
+  {n:'<i>Rhizopus stolonifera</i>', g:'moi'},
+  {n:'<i>Fusarium</i>', g:'moi'},
+];
+const j2 = document.getElementById('jeu2-body');
+shuffle(ORGS.map((o,i)=>i)).forEach(i=>{
+  const o = ORGS[i];
+  const tr = document.createElement('tr');
+  const opts = GROUPS.map(g=>'<option value="'+g.v+'">'+g.t+'</option>').join('');
+  tr.innerHTML = '<td>'+o.n+'</td><td><select class="s" id="j2-sel-'+i+'"><option value="">— choisir —</option>'+opts+'</select></td>';
+  j2.appendChild(tr);
+});
+document.getElementById('jeu2-check').addEventListener('click', ()=>{
+  let ok = 0;
+  ORGS.forEach((o,i)=>{
+    const s = document.getElementById('j2-sel-'+i);
+    s.classList.remove('correct','incorrect');
+    if(s.value === o.g){ s.classList.add('correct'); ok++; }
+    else if(s.value !== ''){ s.classList.add('incorrect'); }
+  });
+  document.getElementById('jeu2-result').textContent = ok + ' / ' + ORGS.length + ' réponses correctes.';
+});
+
+// ---------- Jeu 3 : l'intrus ----------
+const INTRUS = [
+  {o:["<i>Salmonella</i>","<i>E. coli</i>","<i>Pseudomonas</i>","<i>Listeria monocytogenes</i>"], a:3,
+   e:"Trois bactéries Gram− (rose) et une Gram+ : <i>Listeria</i> est l'intrus."},
+  {o:["<i>Bacillus cereus</i>","<i>Clostridium botulinum</i>","<i>Clostridium perfringens</i>","<i>Staphylococcus aureus</i>"], a:3,
+   e:"Trois bacilles sporulés ; <i>S. aureus</i> est un coque en grappes (staphylocoque)."},
+  {o:["<i>Penicillium</i>","<i>Aspergillus</i>","<i>Fusarium</i>","<i>Saccharomyces cerevisiae</i>"], a:3,
+   e:"Trois moisissures (hyphes, mycélium, mycotoxines possibles) ; <i>S. cerevisiae</i> est une levure unicellulaire, qui ne produit pas de mycotoxines."},
+  {o:["<i>Listeria monocytogenes</i>","<i>Pseudomonas</i>","<i>Penicillium</i>","<i>E. coli</i>"], a:3,
+   e:"<i>Listeria</i>, <i>Pseudomonas</i> et <i>Penicillium</i> croissent encore à 0–10 °C (réfrigérateur) ; <i>E. coli</i> est mésophile (optimum 30–45 °C)."},
+  {o:["Peptidoglycane","Acides téichoïques","Lipopolysaccharide (LPS)","Chitine"], a:3,
+   e:"Trois composants de la paroi des bactéries ; la chitine est le composant de la paroi des mycètes."},
+  {o:["Noyau","Mitochondries","Réticulum endoplasmique","Ribosomes"], a:3,
+   e:"Noyau, mitochondries et réticulum endoplasmique n'existent que chez les eucaryotes ; les ribosomes sont présents aussi chez les bactéries (procaryotes)."},
+  {o:["Fission binaire","Conjugaison","Plasmide","Bourgeonnement"], a:3,
+   e:"Fission binaire, conjugaison et plasmide sont des notions bactériennes (Cours 4) ; le bourgeonnement est la reproduction asexuée des levures (Cours 5)."},
+  {o:["<i>Aspergillus niger</i>","<i>Saccharomyces cerevisiae</i>","<i>Penicillium notatum</i>","<i>Pseudomonas</i>"], a:3,
+   e:"Trois mycètes utiles (acide citrique, fermentation, pénicilline) ; <i>Pseudomonas</i> est une bactérie d'altération."},
+];
+buildQuiz({
+  el:'jeu3-quiz', progressId:'jeu3-progress', successId:'jeu3-success', prefix:'Groupe', shuffleOptions:true,
+  items: INTRUS.map(x=>({q:"Lequel est l'intrus ?", options:x.o, answer:x.a, explain:x.e}))
+});
+
+// ---------- Jeu 4 : vrai / faux ----------
+const VF = [
+  {q:"Les levures sont des organismes pluricellulaires.", a:1, e:"Les levures sont unicellulaires ; ce sont les moisissures et les champignons qui sont pluricellulaires."},
+  {q:"La conjugaison bactérienne fait augmenter le nombre de cellules.", a:1, e:"C'est la fission binaire qui multiplie les cellules ; la conjugaison est un échange d'ADN (plasmide) entre deux cellules déjà existantes."},
+  {q:"La reproduction asexuée des mycètes se fait par mitose.", a:0, e:"Mitose en conditions stables (bourgeonnement chez les levures, spores asexuées chez les moisissures) ; la méiose intervient dans la reproduction sexuée."},
+  {q:"La reproduction sexuée des mycètes est favorisée par des conditions stables.", a:1, e:"Elle est favorisée en conditions instables (stress, carence) ; en conditions stables, c'est la reproduction asexuée qui domine."},
+  {q:"À 37 °C, la plupart des moisissures ont leur croissance optimale.", a:1, e:"Leur optimum est de 20 à 30 °C ; au-delà de 30 °C, la plupart ralentissent. C'est l'optimum des bactéries mésophiles pathogènes qui est autour de 37 °C."},
+  {q:"À pH 3,5, les mycètes se développent mieux que la plupart des bactéries.", a:0, e:"À pH 3–4, la croissance des bactéries est très fortement inhibée alors que celle de nombreux mycètes reste possible (confitures, marinades)."},
+  {q:"Une anaérobie facultative ne peut pas fonctionner sans oxygène.", a:1, e:"Elle utilise l'O₂ s'il est disponible (respiration), mais peut fonctionner sans O₂ (par exemple par fermentation)."},
+  {q:"Les levures peuvent fermenter lorsqu'il n'y a pas d'oxygène.", a:0, e:"Certaines levures sont anaérobies facultatives : fermentation alcoolique (glucose → éthanol + CO₂) en absence d'O₂."},
+  {q:"La cuisson détruit les mycotoxines présentes dans un aliment.", a:1, e:"Les mycotoxines sont très résistantes à la chaleur et au pH : elles persistent même si la moisissure est détruite."},
+  {q:"Les levures produisent des mycotoxines.", a:1, e:"Les levures ne produisent pas de mycotoxines ; elles altèrent surtout les aliments sucrés et acides sans produire de toxine."},
+  {q:"La paroi des bactéries Gram+ et celle des mycètes contiennent toutes deux du peptidoglycane.", a:1, e:"Les bactéries ont une paroi de peptidoglycane ; celle des mycètes est faite de chitine (pas de peptidoglycane)."},
+  {q:"Les hyphes végétatifs servent surtout à la reproduction.", a:1, e:"Ils assurent la nutrition, la digestion et l'ancrage dans le substrat ; la reproduction est assurée par les hyphes aériens."},
+  {q:"Le mycélium végétatif d'une moisissure pénètre dans l'aliment.", a:0, e:"Le mycélium végétatif pénètre le substrat : ce qu'on voit à la surface n'est que la partie aérienne."},
+  {q:"Certaines bactéries et certaines moisissures peuvent croître au réfrigérateur.", a:0, e:"Psychrotrophes (<i>Listeria</i>, <i>Pseudomonas</i>) et moisissures comme <i>Penicillium</i> poussent lentement à 0–10 °C."},
+  {q:"Les bactéries et les mycètes possèdent tous deux des ribosomes.", a:0, e:"Les ribosomes sont présents chez les procaryotes comme chez les eucaryotes."},
+  {q:"La levure chimique (bicarbonate de soude) est un organisme vivant.", a:1, e:"C'est un produit chimique non vivant : le CO₂ vient d'une réaction chimique, pas d'une respiration."},
+];
+buildQuiz({
+  el:'jeu4-quiz', progressId:'jeu4-progress', successId:'jeu4-success', prefix:'Énoncé', validate:true,
+  items: VF.map(v=>({q:v.q, options:['Vrai','Faux'], answer:v.a, explain:v.e}))
+});
+
+// ---------- Corrigés (générés à partir des mêmes données) ----------
+(function(){
+  const cols = {bact:[], myc:[], both:[], none:[]};
+  CARDS.forEach(c=>cols[c.cat].push(c.t));
+  const n = Math.max.apply(null, Object.keys(cols).map(k=>cols[k].length));
+  const tb = document.getElementById('key1-body');
+  for(let i=0;i<n;i++){
+    const tr = document.createElement('tr');
+    tr.innerHTML = ['bact','myc','both','none'].map(k=>'<td>'+(cols[k][i]||'')+'</td>').join('');
+    tb.appendChild(tr);
+  }
+  document.getElementById('key1-h').innerHTML =
+    '<th>Bactéries seulement ('+cols.bact.length+')</th><th>Mycètes seulement ('+cols.myc.length+')</th><th>Les deux ('+cols.both.length+')</th><th>Ni l\'un ni l\'autre ('+cols.none.length+')</th>';
+  const g = {gp:'Bactérie Gram +', gn:'Bactérie Gram −', lev:'Levure', moi:'Moisissure'};
+  const tb2 = document.getElementById('key2-body');
+  ORGS.forEach(o=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+o.n+'</td><td><b>'+g[o.g]+'</b></td>';
+    tb2.appendChild(tr);
+  });
+  const tb3 = document.getElementById('key3-body');
+  INTRUS.forEach((x,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+x.o.join(' · ')+'</td><td><b>'+x.o[x.a]+'</b></td><td>'+x.e+'</td>';
+    tb3.appendChild(tr);
+  });
+  const tb4 = document.getElementById('key4-body');
+  VF.forEach(v=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+v.q+'</td><td><b>'+(v.a===0?'Vrai':'Faux')+'</b></td><td>'+v.e+'</td>';
+    tb4.appendChild(tr);
+  });
+})();
+
+</script>
+
+</body>
+</html>

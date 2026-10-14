@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TD Cours 5 : Qui pousse où ? pH et température</title>
+<style>
+  :root{
+    --navy:#123a5c; --navy-dark:#0b2740; --blue:#2f7bb0; --blue-light:#eaf3fa;
+    --teal:#2f8f8a; --bg:#f5f8fb; --card-bg:#ffffff; --border:#dbe6ee; --text:#1c2b36;
+    --ok:#2e7d4f; --ok-bg:#e6f6ec; --bad:#b3372c; --bad-bg:#fbeae8;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:"Segoe UI", Arial, sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0 0 70px 0;line-height:1.55;}
+  header{background:linear-gradient(135deg,var(--navy-dark),var(--blue));color:white;padding:34px 20px;text-align:center;}
+  header h1{margin:0 0 6px 0;font-size:1.8em;}
+  header p{margin:0;opacity:0.92;}
+  .container{max-width:1150px;margin:0 auto;padding:20px;}
+  h2.section-title{margin-top:55px;padding-bottom:8px;border-bottom:3px solid var(--blue);color:var(--navy);}
+  .instructions{background:var(--blue-light);border:1px solid #cfe1ee;border-radius:8px;padding:12px 18px;margin-top:14px;font-size:0.95em;}
+  .instructions b{color:var(--navy);}
+
+  table.key{width:100%;border-collapse:collapse;margin-top:18px;font-size:0.92em;background:var(--card-bg);}
+  table.key th{background:var(--navy);color:white;padding:9px 10px;text-align:left;}
+  table.key td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+  table.key tr:nth-child(even) td{background:#f7fafc;}
+
+  .jeu-wrap{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:16px;}
+  .progress-line{margin-top:14px;font-weight:600;color:var(--navy);}
+  .success-msg{display:none;margin-top:16px;background:var(--ok-bg);border:1px solid #b7dfc4;color:#1e5c37;padding:12px 16px;border-radius:8px;font-weight:600;}
+
+  /* ---- Tri de cartes ---- */
+  .piece-bank{display:flex;flex-wrap:wrap;gap:10px;padding:14px;background:#f5f8fb;border:1px dashed #bcd0e0;border-radius:8px;margin-bottom:20px;min-height:70px;}
+  .piece{background:white;border:2px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;user-select:none;font-size:0.88em;max-width:290px;transition:transform .15s, box-shadow .15s;}
+  .piece:hover{border-color:var(--blue);box-shadow:0 2px 6px rgba(0,0,0,0.12);}
+  .piece.selected{border-color:var(--blue);background:var(--blue-light);box-shadow:0 0 0 3px rgba(47,123,176,0.25);transform:translateY(-2px);}
+  .bins{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .bin{background:#fbfdff;border:2px solid var(--border);border-radius:10px;padding:12px;min-height:160px;cursor:pointer;}
+  .bin h4{margin:0 0 10px 0;text-align:center;color:var(--navy);border-bottom:2px solid var(--blue);padding-bottom:6px;}
+  .bin.shake{animation:shake .35s;}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+  .placed-piece{display:block;background:var(--ok-bg);border:1px solid #b7dfc4;border-radius:6px;padding:4px 8px;margin:4px 0;font-size:0.82em;color:#1e5c37;}
+
+  /* ---- Questions à choix ---- */
+  .qcard{background:#fbfdff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .qnum{font-size:0.75em;text-transform:uppercase;letter-spacing:.05em;color:#6b7c88;font-weight:700;}
+  .qtext{font-weight:600;color:var(--navy);margin:2px 0 6px 0;}
+  .qcond{background:#fff;border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:6px;padding:6px 10px;margin:6px 0 10px 0;font-size:0.9em;}
+  .qopts{display:flex;flex-wrap:wrap;gap:8px;}
+  .opt{font:inherit;font-size:0.9em;background:white;border:2px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;text-align:left;}
+  .opt:hover:not(:disabled){border-color:var(--blue);}
+  .opt.right{background:var(--ok-bg);border-color:var(--ok);color:#1e5c37;font-weight:600;}
+  .opt.wrong{background:var(--bad-bg);border-color:var(--bad);color:var(--bad);}
+  .opt.picked{background:var(--blue-light);border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,123,176,0.25);}
+  .opt:disabled{cursor:default;opacity:0.75;}
+  .opt.wrong:disabled{opacity:1;}
+  .btn:disabled{opacity:0.45;cursor:not-allowed;}
+  .btn:disabled:hover{background:var(--navy);}
+  .success-msg.partial{background:var(--blue-light);border-color:#cfe1ee;color:var(--navy);}
+  .opt.right:disabled{opacity:1;}
+  .qfb{display:none;margin-top:10px;padding:8px 12px;border-radius:6px;font-size:0.9em;}
+  .qfb.show{display:block;}
+  .qfb.ok{background:var(--ok-bg);border:1px solid #b7dfc4;color:#1e5c37;}
+  .qfb.bad{background:var(--bad-bg);border:1px solid #efc3be;color:var(--bad);}
+
+  /* ---- Tables avec menus ---- */
+  table.sel-table{width:100%;border-collapse:collapse;margin-top:18px;background:white;}
+  table.sel-table th{background:var(--navy);color:white;padding:9px 10px;text-align:left;}
+  table.sel-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  table.sel-table tr:nth-child(even) td{background:#f7fafc;}
+  table.sel-table .clue{color:#55677a;font-size:0.9em;}
+  select.s{padding:5px 8px;border-radius:6px;border:1px solid #aac2d4;font-size:0.92em;min-width:210px;}
+  select.s.correct{border:2px solid var(--ok);background:var(--ok-bg);}
+  select.s.incorrect{border:2px solid var(--bad);background:var(--bad-bg);}
+
+  .btn{display:inline-block;margin-top:16px;background:var(--navy);color:white;border:none;padding:10px 22px;border-radius:6px;font-size:0.95em;font-weight:600;cursor:pointer;}
+  .btn:hover{background:var(--blue);}
+  .result-line{margin-top:14px;font-weight:600;color:var(--navy);}
+
+  /* ---- Corrigés verrouillés ---- */
+  .answer-key{margin-top:50px;border:2px dashed var(--teal);border-radius:10px;padding:20px;background:#f0faf8;}
+  .answer-key h2{color:var(--teal);border-bottom:2px solid var(--teal);margin-top:0;}
+  .hidden{display:none !important;}
+  .toggle-btn{display:inline-block;margin-top:15px;margin-right:10px;padding:8px 16px;background:var(--teal);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.95em;}
+  .toggle-btn.secondary{background:var(--navy);}
+  .lock-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;background:#e6f6f4;border:1px dashed var(--teal);border-radius:8px;padding:14px 18px;color:var(--teal);font-weight:600;}
+  .unlock-form{display:flex;gap:8px;align-items:center;}
+  .unlock-form input[type="password"]{border:1px solid #a9d8d3;border-radius:6px;padding:6px 10px;font-size:0.95em;min-width:160px;}
+  .unlock-form .toggle-btn{margin:0;}
+  .pwd-hint{color:#e6f6f4;background:#e6f6f4;user-select:all;-webkit-user-select:all;font-size:0.85em;padding:2px 8px;border-radius:4px;cursor:text;}
+  .pwd-hint::selection{background:#39383a;color:#fff;}
+  .pwd-hint::-moz-selection{background:#39383a;color:#fff;}
+  .relock-btn{float:right;font-size:0.8em;padding:5px 12px;}
+  .note-small{font-size:0.85em;color:#888;margin-top:10px;}
+
+  .bins.four{grid-template-columns:repeat(4,1fr);}
+  @media (max-width:1000px){ .bins.four{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:800px){
+    .bins,.bins.four{grid-template-columns:1fr;}
+    select.s{min-width:150px;}
+    header h1{font-size:1.4em;}
+  }
+
+</style>
+<style>
+#sn-bar{font:14px/1.4 "Segoe UI",Arial,sans-serif;background:#1d3a52;color:#fff;margin:0;padding:8px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;box-sizing:border-box;position:relative;z-index:30;}
+#sn-bar *{box-sizing:border-box;}
+#sn-bar a{color:#fff;text-decoration:none;font-weight:600;padding:5px 11px;border-radius:7px;background:rgba(255,255,255,.12);white-space:nowrap;}
+#sn-bar a:hover{background:rgba(255,255,255,.26);}
+#sn-bar .sn-cur{opacity:.85;font-size:.92em;margin-right:auto;}
+#sn-bar details{position:relative;}
+#sn-bar summary{cursor:pointer;list-style:none;font-weight:600;padding:5px 11px;border-radius:7px;background:rgba(255,255,255,.12);user-select:none;}
+#sn-bar summary::-webkit-details-marker{display:none;}
+#sn-bar summary:hover,#sn-bar details[open] summary{background:rgba(255,255,255,.26);}
+#sn-bar .sn-menu{position:absolute;right:0;top:calc(100% + 6px);width:min(430px,92vw);max-height:75vh;overflow:auto;background:#fff;color:#1d2b36;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);padding:8px 0;z-index:40;}
+#sn-bar .sn-menu a{display:block;background:none;color:#1d3a52;border-radius:0;padding:6px 16px;white-space:normal;font-weight:500;}
+#sn-bar .sn-menu a:hover{background:#e8f1f8;}
+#sn-bar .sn-menu a.on{background:#dcebf6;font-weight:700;}
+#sn-bar .sn-menu .sn-co{margin:6px 0 8px 12px;border-left:6px solid var(--cc,#5b7183);}
+#sn-bar .sn-menu b{display:block;padding:4px 16px 2px;color:var(--cn,#5b7183);font-size:.8em;text-transform:uppercase;letter-spacing:.04em;}
+#sn-bar .sn-menu .sn-co a:hover{background:var(--cl,#e8f1f8);}
+#sn-bar .sn-menu .sn-co a.on{background:var(--cl,#dcebf6);font-weight:700;}
+#sn-bar .sn-menu small{display:inline-block;margin-right:8px;background:#2a9d8f;color:#fff;border-radius:5px;padding:1px 8px;text-align:center;font-size:.8em;font-weight:600;white-space:nowrap;}
+#sn-bar .sn-menu small.sn-nt{background:#1d3a52;}
+#sn-bar .sn-menu small.sn-lab{background:#8a5a9a;}
+@media print{#sn-bar{display:none !important;}}
+</style>
+</head>
+<body>
+<div id="sn-bar" style="background:#0f3636;border-bottom:5px solid #2d9d9f"><span class="sn-cur">101-813-MA · Activité 5.1</span><a href="../index.html">← Accueil</a><a href="../cours5/notes.html">Notes du cours 5</a><details><summary>☰ Tout le site</summary><div class="sn-menu"><div class="sn-co" style="--cc:#e0d8b8;--co:#1c2b36;--cn:#564e2e;--cd:#35311d;--cl:#f6f5ee"><b>Cours 1 · Introduction à la biologie</b><a href="../cours1/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours1/activite_cours1.1_microorganismes.html"><small>Activité 1.1</small>Diversité des microorganismes</a></div><div class="sn-co" style="--cc:#0070c0;--co:#ffffff;--cn:#00528d;--cd:#003357;--cl:#ebf3f9"><b>Cours 2 · Les molécules du vivant</b><a href="../cours2/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours2/activite_cours2.1_macronutriments.html"><small>Activité 2.1</small>Glucides, lipides et protéines</a></div><div class="sn-co" style="--cc:#b3a2ba;--co:#1c2b36;--cn:#5a4861;--cd:#382d3c;--cl:#f3f0f4"><b>Cours 3 · Le modèle cellulaire et l'écologie microbienne</b><a href="../cours3/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a></div><div class="sn-co" style="--cc:#166082;--co:#ffffff;--cn:#135371;--cd:#0c3446;--cl:#ebf5f9"><b>Cours 4 · Les bactéries</b><a href="../cours4/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours4/activite_cours4.1_bacteries.html"><small>Activité 4.1</small>Les bactéries : formes et pathogènes alimentaires</a></div><div class="sn-co" style="--cc:#2d9d9f;--co:#ffffff;--cn:#195657;--cd:#0f3636;--cl:#ebf9f9"><b>Cours 5 · Les mycètes</b><a href="../cours5/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours5/activite_cours5.1_qui_pousse_ou.html" class="on"><small>Activité 5.1</small>Qui pousse où ? pH et température</a><a href="../cours5/activite_cours5.2_bacteries_vs_mycetes.html"><small>Activité 5.2</small>Bactéries ou mycètes ?</a><a href="../cours5/activite_cours5.3_enquete.html"><small>Activité 5.3</small>Enquête : aliment altéré ou intoxication ?</a></div><div class="sn-co" style="--cc:#c32423;--co:#ffffff;--cn:#9c1d1c;--cd:#611211;--cl:#f9ebeb"><b>Cours 6 · Les virus et autres parasites</b><a href="../cours6/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours6/activite_cours6.1_parasitisme_et_groupes.html"><small>Activité 6.1</small>Parasitisme et groupes d'organismes</a><a href="../cours6/activite_cours6.2_virus.html"><small>Activité 6.2</small>Les virus, de la cellule à l'assiette</a><a href="../cours6/activite_cours6.3_vers_parasites.html"><small>Activité 6.3</small>Les vers parasites, de l'assiette à l'organisme</a></div><div class="sn-co" style="--cc:#d9822b;--co:#1c2b36;--cn:#754515;--cd:#482b0d;--cl:#f9f2eb"><b>Cours 7 · La qualité : échantillonnage et normes</b><a href="../cours7/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours7/activite_cours7.1_danger_et_prelevement.html"><small>Activité 7.1</small>Danger, échantillon et prélèvement</a><a href="../cours7/activite_cours7.2_les_normes.html"><small>Activité 7.2</small>Lire une norme microbiologique</a><a href="../cours7/activite_cours7.3_dilutions.html"><small>Activité 7.3</small>Comprendre les dilutions</a></div><div class="sn-co" style="--cc:#5b8c3e;--co:#ffffff;--cn:#395727;--cd:#233618;--cl:#f1f7ed"><b>Cours 8 · La qualité : indicateurs et identification</b><a href="../cours8/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours8/activite_cours8.1_indicateurs.html"><small>Activité 8.1</small>Les organismes indicateurs</a><a href="../cours8/activite_cours8.2_identifier.html"><small>Activité 8.2</small>Identifier un microorganisme</a></div><div class="sn-co" style="--cc:#8a5a9a;--co:#fff;--cn:#6d4479;--cd:#6d4479;--cl:#f3ecf6"><b>🔬 Laboratoires</b><a href="../labos/fiches-labos.html"><small class="sn-lab">🧪 Labos</small>Fiches de mise en contexte des laboratoires</a></div></div></details></div>
+
+
+<header>
+  <h1>Travaux Dirigés — Cours 5 : Qui pousse où ? pH et température</h1>
+  <p>101-813-MA — Introduction à la microbiologie alimentaire</p>
+</header>
+
+<div class="container">
+  <p class="instructions">
+    <b>Avant de commencer :</b> le pH et la température déterminent <i>qui</i> peut se développer dans un aliment : bactéries (Cours 4) ou mycètes (Cours 5). Pour ces trois jeux, servez-vous des diapositives <b>« Le pH »</b> et <b>« La température »</b> du Cours 5, ainsi que des deux tableaux des principaux microorganismes alimentaires (Cours 3 et 4).
+  </p>
+
+  <h2 class="section-title">Jeu 1 — Que s'est-il passé dans cet aliment ?</h2>
+  <p class="instructions">Pour chaque situation, choisissez le microorganisme (ou le groupe) le plus susceptible de se développer ou de poser problème. Choisissez <b>une réponse par question</b>, puis cliquez sur <b>« Valider mes réponses »</b>. Les réponses fausses sont marquées en rouge, sans la bonne réponse : corrigez-les, puis validez à nouveau.</p>
+  <div class="jeu-wrap">
+    <div id="jeu1-quiz"></div>
+    <div class="progress-line" id="jeu1-progress"></div>
+    <div class="success-msg" id="jeu1-success"></div>
+  </div>
+
+  <div class="answer-key" id="answerKey1">
+    <div class="lock-bar" id="lockBar1">
+      <span>🔒 Corrections masquées — réservées à l'enseignant</span>
+      <div class="unlock-form">
+        <input type="password" id="pwdInput1" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')tryUnlock('1')">
+        <button class="toggle-btn" onclick="tryUnlock('1')">Afficher</button>
+        <span class="pwd-hint" title="Surlignez pour révéler">scenarios24</span>
+      </div>
+    </div>
+    <div class="answer-body hidden" id="answerBody1">
+    <button class="toggle-btn secondary relock-btn" onclick="relock('1')">🔒 Masquer à nouveau</button>
+    <h2>Feuille de correction — Jeu 1 (enseignant)</h2>
+    <table class="key">
+      <thead><tr><th>Situation</th><th>Réponse attendue</th><th>Justification</th></tr></thead>
+      <tbody id="key1-body"></tbody>
+    </table>
+    <p class="note-small">Chaque situation est construite pour avoir une seule réponse défendable à partir des diapositives (pH, température, oxygène, spores) et des tableaux des principaux microorganismes alimentaires. Les options sont mélangées à chaque chargement de la page.</p>
+
+    </div>
+  </div>
+
+  <h2 class="section-title">Jeu 2 — Lire les courbes</h2>
+  <p class="instructions">Questions sur les zones de pH et de température des diapositives du Cours 5. Choisissez <b>une réponse par question</b>, puis cliquez sur <b>« Valider mes réponses »</b>. Les réponses fausses sont marquées en rouge, sans la bonne réponse : corrigez-les, puis validez à nouveau.</p>
+  <div class="jeu-wrap">
+    <div id="jeu2-quiz"></div>
+    <div class="progress-line" id="jeu2-progress"></div>
+    <div class="success-msg" id="jeu2-success"></div>
+  </div>
+
+  <div class="answer-key" id="answerKey2">
+    <div class="lock-bar" id="lockBar2">
+      <span>🔒 Corrections masquées — réservées à l'enseignant</span>
+      <div class="unlock-form">
+        <input type="password" id="pwdInput2" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')tryUnlock('2')">
+        <button class="toggle-btn" onclick="tryUnlock('2')">Afficher</button>
+        <span class="pwd-hint" title="Surlignez pour révéler">courbes24</span>
+      </div>
+    </div>
+    <div class="answer-body hidden" id="answerBody2">
+    <button class="toggle-btn secondary relock-btn" onclick="relock('2')">🔒 Masquer à nouveau</button>
+    <h2>Feuille de correction — Jeu 2 (enseignant)</h2>
+    <table class="key">
+      <thead><tr><th>Question</th><th>Réponse attendue</th><th>Justification</th></tr></thead>
+      <tbody id="key2-body"></tbody>
+    </table>
+
+    </div>
+  </div>
+
+  <h2 class="section-title">Jeu 3 — Le duel : bactéries contre mycètes</h2>
+  <p class="instructions">Pour chaque combinaison de pH et de température, qui est favorisé : les <b>bactéries</b>, les <b>mycètes</b> (levures et moisissures), <b>les deux</b> (croissance lente ou ralentie), ou <b>aucun</b> ? Comparez les colonnes « Bactéries » et « Mycètes » de vos diapositives. Choisissez <b>une réponse par question</b>, puis cliquez sur <b>« Valider mes réponses »</b>. Les réponses fausses sont marquées en rouge, sans la bonne réponse : corrigez-les, puis validez à nouveau.</p>
+  <div class="jeu-wrap">
+    <div id="jeu3-quiz"></div>
+    <div class="progress-line" id="jeu3-progress"></div>
+    <div class="success-msg" id="jeu3-success"></div>
+  </div>
+
+  <div class="answer-key" id="answerKey3">
+    <div class="lock-bar" id="lockBar3">
+      <span>🔒 Corrections masquées — réservées à l'enseignant</span>
+      <div class="unlock-form">
+        <input type="password" id="pwdInput3" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')tryUnlock('3')">
+        <button class="toggle-btn" onclick="tryUnlock('3')">Afficher</button>
+        <span class="pwd-hint" title="Surlignez pour révéler">duel24</span>
+      </div>
+    </div>
+    <div class="answer-body hidden" id="answerBody3">
+    <button class="toggle-btn secondary relock-btn" onclick="relock('3')">🔒 Masquer à nouveau</button>
+    <h2>Feuille de correction — Jeu 3 (enseignant)</h2>
+    <table class="key">
+      <thead><tr><th>Conditions</th><th>Réponse attendue</th><th>Justification</th></tr></thead>
+      <tbody id="key3-body"></tbody>
+    </table>
+    <p class="note-small">Les valeurs sont indicatives (la tolérance varie selon l'espèce), comme le précisent les diapositives. Le duel compare les colonnes « Bactéries » et « Mycètes » des diapositives pH et température.</p>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+const ANSWER_PASSWORDS = {"1": "scenarios24", "2": "courbes24", "3": "duel24"};
+const STORE_PREFIX = "c5B_unlock_";
+
+function shuffle(a){ return [...a].sort(()=>Math.random()-0.5); }
+
+// ---------- Questions à choix (QCM, vrai/faux, duels) ----------
+// cfg: {el, items:[{q, cond?, options:[...], answer:idx, explain}], shuffleOptions, noRetry, prefix, progressId, successId, successText}
+function buildQuiz(cfg){
+  if(cfg.validate){ return buildValidatedQuiz(cfg); }
+  const root = document.getElementById(cfg.el);
+  const progress = document.getElementById(cfg.progressId);
+  const success = document.getElementById(cfg.successId);
+  const total = cfg.items.length;
+  let solved = 0, firstTry = 0;
+  function update(){
+    progress.textContent = solved + ' / ' + total + ' réponses trouvées (' + firstTry + ' du premier coup)';
+    if(solved === total){ success.style.display = 'block'; }
+  }
+  update();
+  cfg.items.forEach((it,i)=>{
+    const card = document.createElement('div');
+    card.className = 'qcard';
+    card.innerHTML =
+      '<div class="qnum">' + (cfg.prefix || 'Question') + ' ' + (i+1) + '</div>' +
+      '<div class="qtext">' + it.q + '</div>' +
+      (it.cond ? '<div class="qcond">' + it.cond + '</div>' : '') +
+      '<div class="qopts"></div><div class="qfb"></div>';
+    const box = card.querySelector('.qopts'), fb = card.querySelector('.qfb');
+    let opts = it.options.map((t,idx)=>({t:t, idx:idx}));
+    if(cfg.shuffleOptions) opts = shuffle(opts);
+    let done = false, attempts = 0;
+    function finish(rightBtn, ok){
+      done = true; solved++;
+      if(ok && attempts === 0) firstTry++;
+      box.querySelectorAll('.opt').forEach(x=>{ x.disabled = true; });
+      rightBtn.classList.add('right');
+      fb.className = 'qfb show ok';
+      fb.innerHTML = (ok ? '✅ ' : 'ℹ️ Bonne réponse : « ' + rightBtn.textContent + ' ». ') + it.explain;
+      update();
+    }
+    const btns = [];
+    opts.forEach(o=>{
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'opt'; b.innerHTML = o.t;
+      b.addEventListener('click', ()=>{
+        if(done) return;
+        if(o.idx === it.answer){ finish(b, true); }
+        else if(cfg.noRetry){
+          b.classList.add('wrong');
+          finish(btns.find(x=>x._idx === it.answer), false);
+        } else {
+          attempts++;
+          b.classList.add('wrong'); b.disabled = true;
+          fb.className = 'qfb show bad';
+          fb.textContent = 'Pas tout à fait — réessayez.';
+        }
+      });
+      b._idx = o.idx;
+      btns.push(b);
+      box.appendChild(b);
+    });
+    root.appendChild(card);
+  });
+}
+
+const HINTS = {"jeu1-quiz": [["la partie 4 des notes du Cours 5 (le pH et la température) et les notes du Cours 4", "Pensez à la température du réfrigérateur et à la capacité de certaines bactéries de se multiplier encore au froid."], ["la partie 4 des notes du Cours 5 (le pH et la température) et les notes du Cours 4", "Demandez-vous quels microorganismes tolèrent un pH aussi acide, alors que la plupart des bactéries y sont fortement freinées."], ["la partie 4 des notes du Cours 5 (le pH et la température) et les notes du Cours 4", "Pensez à ce qui peut survivre à une cuisson à 100 °C, puis à ce qui se passe pendant un refroidissement lent."], ["la partie 4 des notes du Cours 5 (le pH et la température) et les notes du Cours 4", "Rappelez-vous ce que l'absence d'oxygène, un traitement thermique insuffisant et un pH peu acide permettent à une bactérie sporulée."], ["la partie 4 des notes du Cours 5 (le pH et la température) et les notes du Cours 4", "Pensez aux microorganismes capables de se développer à basse température et d'altérer rapidement la surface des aliments frais réfrigérés."], ["la partie 4 des notes du Cours 5 (le pH et la température) et les notes du Cours 4", "Demandez-vous quelle activité microbienne sur les sucres du lait explique la baisse du pH et l'épaississement."], ["la partie 4 des notes du Cours 5 (le pH et la température) et les notes du Cours 4", "Rappelez-vous ce qui résiste à la cuisson, puis ce que permettent plusieurs heures de refroidissement entre 20 et 45 °C."], ["la partie 4 des notes du Cours 5 (le pH et la température) et les notes du Cours 4", "Demandez-vous quels microorganismes ont besoin d'oxygène pour transformer l'éthanol en acide, comme lors de la fabrication du vinaigre."], ["la partie 4 des notes du Cours 5 (le pH et la température) et les notes du Cours 4", "Pensez à ce que certains microorganismes font du sucre lorsque l'oxygène manque, dans un milieu acide et très sucré."]], "jeu2-quiz": [["la partie 4 des notes du Cours 5 (le pH et la température) et la zone de danger du Cours 3", "Demandez-vous à quelle température vit l'hôte humain que ces bactéries infectent, et à quoi elles sont adaptées."], ["la partie 4 des notes du Cours 5 (le pH et la température) et la zone de danger du Cours 3", "Rappelez-vous la plage de température où les mycètes croissent le mieux et comment ils réagissent à une chaleur plus forte."], ["la partie 4 des notes du Cours 5 (le pH et la température) et la zone de danger du Cours 3", "Pensez au niveau d'acidité nécessaire pour empêcher la croissance de cette bactérie sporulée, ce qui compte beaucoup dans les conserves."], ["la partie 4 des notes du Cours 5 (le pH et la température) et la zone de danger du Cours 3", "Pensez au pH des milieux où la grande majorité des bactéries se développe le mieux."], ["la partie 4 des notes du Cours 5 (le pH et la température) et la zone de danger du Cours 3", "Rappelez-vous le type de milieu, plus ou moins acide, que préfèrent les levures et les moisissures par rapport aux bactéries."], ["la partie 4 des notes du Cours 5 (le pH et la température) et la zone de danger du Cours 3", "Comparez la réaction des bactéries et celle des mycètes face à un milieu très acide, comme celui des confitures."], ["la partie 4 des notes du Cours 5 (le pH et la température) et la zone de danger du Cours 3", "Demandez-vous dans quelle plage de températures les pathogènes se multiplient, et ce que signifie la règle du froid au froid, chaud au chaud."], ["la partie 4 des notes du Cours 5 (le pH et la température) et la zone de danger du Cours 3", "Demandez-vous ce qui distingue ces deux bactéries des autres face à la température d'un réfrigérateur, où la plupart ralentissent."], ["la partie 4 des notes du Cours 5 (le pH et la température) et la zone de danger du Cours 3", "Demandez-vous comment la plupart des bactéries réagissent à une chaleur supérieure à 60 °C, principe exploité par la pasteurisation."], ["la partie 4 des notes du Cours 5 (le pH et la température) et la zone de danger du Cours 3", "Demandez-vous si le froid intense agit comme la chaleur sur les microorganismes, et ce qui se passe quand l'aliment dégèle."], ["la partie 4 des notes du Cours 5 (le pH et la température) et la zone de danger du Cours 3", "Demandez-vous quelles bactéries tolèrent l'acidité alors que la majorité des autres y sont fortement inhibées."]], "jeu3-quiz": [["la partie 4 des notes du Cours 5 (le pH et la température)", "Comparez les zones optimales de pH et de température des bactéries avec celles des mycètes, notamment au-delà de 30 °C."], ["la partie 4 des notes du Cours 5 (le pH et la température)", "Évaluez l'effet d'un pH très acide sur chaque groupe, puis comparez la température indiquée avec leur plage optimale respective."], ["la partie 4 des notes du Cours 5 (le pH et la température)", "Pensez à la façon dont chaque groupe tolère un pH autour de 4 à 5, sans oublier certaines bactéries particulières."], ["la partie 4 des notes du Cours 5 (le pH et la température)", "Demandez-vous quels microorganismes peuvent encore se développer à la température d'un réfrigérateur, et à quelle vitesse."], ["la partie 4 des notes du Cours 5 (le pH et la température)", "Rappelez-vous l'effet d'une température de 70 °C sur les cellules végétatives, qu'il s'agisse de bactéries ou de mycètes."], ["la partie 4 des notes du Cours 5 (le pH et la température)", "Combinez l'effet d'un pH acide sur les bactéries avec la tolérance des mycètes aux basses températures."]]};
+// Indices : 1re erreur sur une question = renvoi aux notes; 2e erreur = piste de contenu (sans la réponse).
+function hintHtml(h1, h2, n){
+  let r = '';
+  if(h1) r += '<br>💡 <b>Indice :</b> relisez ' + h1 + '.';
+  if(n >= 2 && h2) r += '<br>🔎 <b>Piste :</b> ' + h2;
+  return r;
+}
+
+// ---------- Questionnaire à validation répétée ----------
+// Une réponse par question, puis « Valider » : les réponses fausses sont marquées en rouge
+// SANS montrer la bonne réponse. L'élève choisit une autre réponse et valide à nouveau.
+// Les bonnes réponses sont verrouillées en vert, avec leur explication.
+function buildValidatedQuiz(cfg){
+  const root = document.getElementById(cfg.el);
+  const progress = document.getElementById(cfg.progressId);
+  const success = document.getElementById(cfg.successId);
+  const total = cfg.items.length;
+  const st = [];
+  let tries = 0, finished = false, lastMsg = '';
+  const vbtn = document.createElement('button');
+  vbtn.type = 'button'; vbtn.className = 'btn'; vbtn.textContent = 'Valider mes réponses'; vbtn.disabled = true;
+  function answeredCount(){ return st.filter(s=>s.picked !== null).length; }
+  function refresh(){
+    if(finished) return;
+    const n = answeredCount();
+    if(tries === 0) progress.textContent = n + ' / ' + total + ' questions répondues' + (n < total ? ' — répondez à toutes les questions pour pouvoir valider.' : ' — vous pouvez valider.');
+    else progress.textContent = n < total ? lastMsg : 'Vous pouvez valider à nouveau.';
+    vbtn.disabled = n < total;
+  }
+  cfg.items.forEach((it,i)=>{
+    const card = document.createElement('div');
+    card.className = 'qcard';
+    card.innerHTML =
+      '<div class="qnum">' + (cfg.prefix || 'Question') + ' ' + (i+1) + '</div>' +
+      '<div class="qtext">' + it.q + '</div>' +
+      (it.cond ? '<div class="qcond">' + it.cond + '</div>' : '') +
+      '<div class="qopts"></div><div class="qfb"></div>';
+    const box = card.querySelector('.qopts');
+    let opts = it.options.map((t,idx)=>({t:t, idx:idx}));
+    if(cfg.shuffleOptions) opts = shuffle(opts);
+    const s = {picked:null, locked:false, fails:0, btns:[], fb:card.querySelector('.qfb')};
+    st.push(s);
+    opts.forEach(o=>{
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'opt'; b.innerHTML = o.t; b._idx = o.idx;
+      b.addEventListener('click', ()=>{
+        if(finished || s.locked || b.disabled) return;
+        s.picked = o.idx;
+        s.btns.forEach(x=>x.classList.toggle('picked', x === b));
+        s.fb.className = 'qfb'; s.fb.innerHTML = '';
+        refresh();
+      });
+      s.btns.push(b); box.appendChild(b);
+    });
+    root.appendChild(card);
+  });
+  const wrap = document.createElement('div');
+  wrap.appendChild(vbtn);
+  root.appendChild(wrap);
+  vbtn.addEventListener('click', ()=>{
+    if(finished || answeredCount() < total) return;
+    tries++; vbtn.textContent = 'Valider à nouveau';
+    let score = 0;
+    cfg.items.forEach((it,i)=>{
+      const s = st[i];
+      if(s.locked){ score++; return; }
+      if(s.picked === it.answer){
+        score++; s.locked = true;
+        s.btns.forEach(b=>{ b.disabled = true; b.classList.remove('picked'); if(b._idx === it.answer) b.classList.add('right'); });
+        s.fb.className = 'qfb show ok';
+        s.fb.innerHTML = '✅ Bonne réponse. ' + it.explain;
+      } else {
+        s.btns.forEach(b=>{ if(b._idx === s.picked){ b.classList.remove('picked'); b.classList.add('wrong'); b.disabled = true; } });
+        s.picked = null; s.fails++;
+        const hh = (typeof HINTS !== 'undefined' && HINTS[cfg.el] && HINTS[cfg.el][i]) || [];
+        s.fb.className = 'qfb show bad';
+        s.fb.innerHTML = '❌ Ce n’est pas la bonne réponse.' + hintHtml(hh[0], hh[1], s.fails) + '<br>Choisissez une autre réponse, puis validez à nouveau.';
+      }
+    });
+    if(score === total){
+      finished = true; vbtn.disabled = true;
+      progress.textContent = 'Score : ' + total + ' / ' + total;
+      success.textContent = '🎯 Toutes les réponses sont bonnes' + (tries === 1 ? ' dès la première validation — parfait !' : ' après ' + tries + ' validations. Relisez les explications des questions qui vous ont demandé plusieurs essais.');
+      success.classList.remove('partial');
+      success.style.display = 'block';
+    } else {
+      lastMsg = 'Validation ' + tries + ' : ' + score + ' / ' + total + ' bonne' + (score > 1 ? 's' : '') + ' réponse' + (score > 1 ? 's' : '') + '. Corrigez les réponses marquées en rouge (' + (total - score) + ' à refaire), puis validez à nouveau.';
+      vbtn.disabled = true; progress.textContent = lastMsg;
+    }
+  });
+  refresh();
+}
+// ---------- Verrouillage des corrigés ----------
+// ⚠️ Le fichier est du HTML/JS ordinaire : un élève qui inspecte le code source
+// (Ctrl+U) ou sélectionne tout le texte de la page peut retrouver ces mots de
+// passe et le contenu masqué. Ce verrou sert seulement à éviter qu'une personne
+// tombe sur les réponses par mégarde en faisant défiler la page.
+function tryUnlock(id){
+  const input = document.getElementById('pwdInput' + id);
+  if(input.value === ANSWER_PASSWORDS[id]){
+    document.getElementById('lockBar' + id).classList.add('hidden');
+    document.getElementById('answerBody' + id).classList.remove('hidden');
+    input.value = '';
+    try{ sessionStorage.setItem(STORE_PREFIX + id, '1'); }catch(e){}
+  } else {
+    input.value = '';
+    input.placeholder = 'Mot de passe incorrect';
+  }
+}
+function relock(id){
+  document.getElementById('answerBody' + id).classList.add('hidden');
+  document.getElementById('lockBar' + id).classList.remove('hidden');
+  const input = document.getElementById('pwdInput' + id);
+  input.value = ''; input.placeholder = 'Mot de passe';
+  try{ sessionStorage.removeItem(STORE_PREFIX + id); }catch(e){}
+}
+document.addEventListener('DOMContentLoaded', function(){
+  Object.keys(ANSWER_PASSWORDS).forEach(function(id){
+    let on = null;
+    try{ on = sessionStorage.getItem(STORE_PREFIX + id); }catch(e){}
+    if(on === '1'){
+      document.getElementById('answerBody' + id).classList.remove('hidden');
+      document.getElementById('lockBar' + id).classList.add('hidden');
+    }
+  });
+});
+
+// ---------- Jeu 1 : scénarios ----------
+const SCEN = [
+  {q:"La charcuterie tranchée", cond:"pH ≈ 6 · conservée au réfrigérateur à 4 °C pendant 3 semaines",
+   o:["<i>Listeria monocytogenes</i>","<i>Salmonella</i>","<i>Staphylococcus aureus</i>","<i>Clostridium perfringens</i>"], a:0,
+   e:"<i>Listeria</i> est psychrotrophe : elle croît encore à 0–10 °C. Les autres bactéries proposées sont mésophiles et ne se multiplient presque plus à 4 °C."},
+  {q:"La confiture de fraises ouverte", cond:"pH ≈ 3,2 · laissée à 22 °C sur le comptoir, avec un duvet à la surface",
+   o:["Moisissures","<i>Salmonella</i>","<i>Pseudomonas</i>","<i>Clostridium botulinum</i>"], a:0,
+   e:"Aux pH de 3 à 4, les bactéries sont très fortement inhibées alors que la croissance des mycètes reste possible : les moisissures sont les contaminants typiques des confitures et marinades."},
+  {q:"Le riz cuit de la veille", cond:"Riz cuit à 100 °C puis laissé refroidir lentement sur le comptoir (≈ 25–35 °C) ; vomissements après le repas",
+   o:["<i>Bacillus cereus</i>","<i>Salmonella</i>","<i>Listeria monocytogenes</i>","<i>E. coli</i>"], a:0,
+   e:"Seules les spores résistent à la cuisson : <i>B. cereus</i> est sporulée et produit une toxine dans les plats de riz ou de pâtes refroidis trop lentement. Les autres bactéries proposées sont détruites à 100 °C."},
+  {q:"Les haricots en conserve maison", cond:"pH ≈ 5,8 · traitement thermique insuffisant · pot hermétique, donc sans oxygène · couvercle bombé",
+   o:["<i>Clostridium botulinum</i>","<i>Salmonella</i>","<i>Listeria monocytogenes</i>","Moisissures"], a:0,
+   e:"<i>C. botulinum</i> est anaérobie stricte et sporulée : ses spores survivent à une thermisation insuffisante, et son pH minimal (4,6) n'est pas atteint ici. Les moisissures, aérobies, ne se développent pas dans un pot sans oxygène."},
+  {q:"Le filet de poisson frais", cond:"pH ≈ 6,8 · réfrigéré à 3 °C pendant 6 jours · odeur désagréable en surface",
+   o:["<i>Pseudomonas</i>","<i>Salmonella</i>","<i>E. coli</i>","<i>Clostridium perfringens</i>"], a:0,
+   e:"<i>Pseudomonas</i> est psychrotrophe et provoque une altération de surface rapide des viandes, poissons et légumes réfrigérés."},
+  {q:"Le lait devenu yaourt", cond:"pH passant de 6,6 à 4,2 · maintenu à 40 °C · le lait épaissit",
+   o:["Bactéries lactiques","<i>Pseudomonas</i>","<i>Clostridium botulinum</i>","Moisissures"], a:0,
+   e:"Les bactéries lactiques fermentent les sucres en acide lactique ; à pH 4–5, les bactéries acidotolérantes comme les lactobacilles sont favorisées pendant que les autres sont inhibées."},
+  {q:"Le ragoût en grande quantité", cond:"Ragoût cuit puis refroidi lentement dans une grande marmite (plusieurs heures entre 20 et 45 °C) ; crampes abdominales le lendemain",
+   o:["<i>Clostridium perfringens</i>","<i>Listeria monocytogenes</i>","Levures","Bactéries acétiques"], a:0,
+   e:"<i>C. perfringens</i> est sporulée : ses spores survivent à la cuisson, puis elle se multiplie pendant un refroidissement trop lent (ragoûts, plats de viande en sauce)."},
+  {q:"Le kombucha laissé à l'air libre", cond:"Thé sucré fermenté · pH ≈ 3 · 25 °C · oxygène disponible",
+   o:["Bactéries acétiques","<i>Salmonella</i>","<i>Clostridium botulinum</i>","<i>Listeria monocytogenes</i>"], a:0,
+   e:"Les bactéries acétiques sont aérobies, mésophiles et oxydent l'éthanol en acide acétique : vinaigre, kombucha. Elles ont besoin d'oxygène."},
+  {q:"Le moût de raisin", cond:"pH ≈ 3,4 · très sucré · 25 °C · peu d'oxygène",
+   o:["Levures","Bactéries acétiques","<i>Listeria monocytogenes</i>","<i>Staphylococcus aureus</i>"], a:0,
+   e:"Les levures (<i>Saccharomyces cerevisiae</i>) sont anaérobies facultatives : sans oxygène, elles fermentent le glucose en éthanol et CO₂. Les bactéries acétiques exigent de l'oxygène."},
+];
+buildQuiz({
+  el:'jeu1-quiz', progressId:'jeu1-progress', successId:'jeu1-success', prefix:'Dossier', shuffleOptions:true, validate:true,
+  items: SCEN.map(s=>({q:s.q, cond:s.cond, options:s.o, answer:s.a, explain:s.e}))
+});
+
+// ---------- Jeu 2 : lire les courbes ----------
+const COURBES = [
+  {q:"Les bactéries mésophiles (dont les pathogènes humains) ont leur croissance optimale entre…", o:["0 et 10 °C","10 et 20 °C","30 et 45 °C","45 et 60 °C"], a:2,
+   e:"L'optimum des pathogènes humains se situe autour de 37 °C."},
+  {q:"Les levures et les moisissures poussent de façon optimale entre…", o:["0 et 10 °C","20 et 30 °C","30 et 45 °C","45 et 60 °C"], a:1,
+   e:"20–30 °C est la plage idéale pour la majorité des levures et moisissures ; la plupart ralentissent au-delà de 30 °C."},
+  {q:"Sous quel pH <i>Clostridium botulinum</i> ne croît-il plus ?", o:["pH 4,6","pH 6,5","pH 7,5","pH 9"], a:0,
+   e:"Sous pH 4,6, il n'y a pas de croissance de <i>C. botulinum</i> : d'où l'importance de l'acidité dans les conserves."},
+  {q:"Quel est le pH optimal de la plupart des bactéries ?", o:["2 à 3","4 à 5","6 à 8","plus de 9"], a:2,
+   e:"La grande majorité des bactéries ont leur optimum autour de pH 6,5–7,5."},
+  {q:"Quel est le pH optimal de la majorité des levures et moisissures ?", o:["2 à 3","5 à 6","7 à 8","plus de 9"], a:1,
+   e:"Un milieu légèrement acide (pH 5–6) est favorable aux mycètes."},
+  {q:"Pourquoi les moisissures contaminent-elles souvent les confitures (pH 3–4) alors que la plupart des bactéries n'y poussent pas ?", o:["Les mycètes tolèrent mieux l'acidité : les bactéries y sont très fortement inhibées","Les moisissures n'ont besoin d'aucun nutriment","Le sucre détruit toutes les bactéries instantanément","Les confitures contiennent des antibiotiques"], a:0,
+   e:"À pH 3–4, la croissance des bactéries est très fortement inhibée alors que celle de nombreux mycètes acidotolérants reste possible."},
+  {q:"Quelle plage de température constitue la zone de danger en salubrité alimentaire ?", o:["De –18 à 0 °C","De 0 à 4 °C","De 4 à 60 °C","De 60 à 100 °C"], a:2,
+   e:"Entre 4 et 60 °C, les microorganismes pathogènes peuvent se multiplier : on garde le froid au froid et le chaud au chaud."},
+  {q:"Pourquoi <i>Listeria</i> et <i>Pseudomonas</i> sont-elles préoccupantes au réfrigérateur (0–10 °C) ?", o:["Ce sont des psychrotrophes : elles se développent encore à basse température","Ce sont des thermophiles","Le froid active leurs toxines","Elles ne se multiplient qu'au congélateur"], a:0,
+   e:"Les psychrotrophes poussent (lentement) au réfrigérateur, contrairement à la majorité des autres bactéries."},
+  {q:"Que se passe-t-il à plus de 60 °C pour la plupart des bactéries ?", o:["Elles ne se développent plus et beaucoup sont détruites (base de la pasteurisation)","Elles se multiplient plus vite","Elles entrent en dormance sans jamais mourir","Seules les bactéries lactiques survivent"], a:0,
+   e:"Seuls les thermophiles (extrêmophiles, Cours 3) se développent à ces températures ; la chaleur est la base de la pasteurisation."},
+  {q:"Que fait le gel (moins de 0 °C) aux microorganismes ?", o:["Il arrête la croissance mais tue peu de bactéries, qui reprennent au dégel","Il stérilise l'aliment","Il détruit toutes les spores","Il active la croissance des mycètes"], a:0,
+   e:"Le froid arrête la croissance mais ne stérilise pas : les microorganismes reprennent leur activité au dégel."},
+  {q:"À pH 4–5, quel groupe de bactéries est favorisé ?", o:["Les lactobacilles (bactéries acidotolérantes)","<i>Salmonella</i>","<i>Pseudomonas</i>","<i>Clostridium botulinum</i>"], a:0,
+   e:"La majorité des bactéries sont fortement inhibées à pH 4–5, mais les bactéries lactiques acidotolérantes (ex. lactobacilles) sont favorisées."},
+];
+buildQuiz({
+  el:'jeu2-quiz', progressId:'jeu2-progress', successId:'jeu2-success', prefix:'Question', shuffleOptions:true, validate:true,
+  items: COURBES.map(s=>({q:s.q, options:s.o, answer:s.a, explain:s.e}))
+});
+
+// ---------- Jeu 3 : le duel ----------
+const DUEL_OPTS = ['Bactéries favorisées','Mycètes favorisés','Les deux (croissance lente ou ralentie)','Aucun ne croît'];
+const DUEL = [
+  {q:"pH 7,0 · 37 °C", a:0, e:"Bactéries : pH 6–8 et 30–45 °C sont leur zone optimale. Mycètes : croissance ralentie au-delà de 30 °C."},
+  {q:"pH 3,5 · 22 °C", a:1, e:"À pH 3–4, les bactéries sont très fortement inhibées alors que la croissance des mycètes est possible ; 20–30 °C est de plus leur plage optimale."},
+  {q:"pH 4,5 · 25 °C", a:1, e:"À pH 4–5, les bactéries sont fortement inhibées (sauf les acidotolérantes comme les lactobacilles) alors que les mycètes ont une bonne croissance : altération des fruits et des jus."},
+  {q:"pH 7,0 · 4 °C (réfrigérateur)", a:2, e:"Seuls les psychrotrophes (<i>Listeria</i>, <i>Pseudomonas</i>) et certaines moisissures (<i>Penicillium</i>) poussent, et très lentement."},
+  {q:"pH 7,0 · 70 °C", a:3, e:"À 70 °C et plus, c'est la désinfection thermique (Cours 3, effet de la température) : les cellules végétatives des bactéries comme des mycètes sont détruites. Aucun ne croît, sauf les thermophiles (extrêmophiles, Cours 3), qui sortent du cadre de ce duel."},
+  {q:"pH 3,5 · 4 °C (réfrigérateur)", a:1, e:"Le pH 3,5 inhibe fortement les bactéries, alors que levures et moisissures croissent encore à 0–10 °C (tableau pH/température du Cours 3) : mycètes favorisés."},
+];
+buildQuiz({
+  el:'jeu3-quiz', progressId:'jeu3-progress', successId:'jeu3-success', prefix:'Conditions', validate:true,
+  items: DUEL.map(d=>({q:d.q, options:DUEL_OPTS, answer:d.a, explain:d.e}))
+});
+
+// ---------- Corrigés (générés à partir des mêmes données) ----------
+function fillKey(id, rows){
+  const tb = document.getElementById(id);
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = r.map(c=>'<td>'+c+'</td>').join('');
+    tb.appendChild(tr);
+  });
+}
+fillKey('key1-body', SCEN.map(s=>['<b>'+s.q+'</b><br><small>'+s.cond+'</small>', '<b>'+s.o[s.a]+'</b>', s.e]));
+fillKey('key2-body', COURBES.map(s=>[s.q, '<b>'+s.o[s.a]+'</b>', s.e]));
+fillKey('key3-body', DUEL.map(d=>[d.q, '<b>'+DUEL_OPTS[d.a]+'</b>', d.e]));
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>TD : Les bactéries — morphologie et pathogènes alimentaires</title>
+<style>
+  :root{
+    --navy:#123a5c;
+    --navy-dark:#0b2740;
+    --blue:#2f7bb0;
+    --blue-light:#eaf3fa;
+    --teal:#2f8f8a;
+    --bg:#f5f8fb;
+    --card-bg:#ffffff;
+    --border:#dbe6ee;
+    --text:#1c2b36;
+    --ok:#2e7d4f;
+    --ok-bg:#e6f6ec;
+    --bad:#b3372c;
+    --bad-bg:#fbeae8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:"Segoe UI", Arial, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    margin:0;
+    padding:0 0 70px 0;
+    line-height:1.55;
+  }
+  header{
+    background:linear-gradient(135deg,var(--navy-dark),var(--blue));
+    color:white;
+    padding:34px 20px;
+    text-align:center;
+  }
+  header h1{margin:0 0 6px 0;font-size:1.9em;}
+  header p{margin:0;opacity:0.92;}
+
+  .container{max-width:1150px;margin:0 auto;padding:20px;}
+
+  h2.section-title{
+    margin-top:55px;
+    padding-bottom:8px;
+    border-bottom:3px solid var(--blue);
+    color:var(--navy);
+  }
+  h3.sub-title{color:var(--navy); margin-top:26px;}
+
+  .instructions{
+    background:var(--blue-light);
+    border:1px solid #cfe1ee;
+    border-radius:8px;
+    padding:12px 18px;
+    margin-top:14px;
+    font-size:0.95em;
+  }
+  .instructions b{color:var(--navy);}
+
+  table.pathogen-ref{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:18px;
+    font-size:0.92em;
+    background:var(--card-bg);
+  }
+  table.pathogen-ref th{
+    background:var(--navy);
+    color:white;
+    padding:9px 10px;
+    text-align:left;
+  }
+  table.pathogen-ref td{
+    padding:8px 10px;
+    border-bottom:1px solid var(--border);
+  }
+  table.pathogen-ref tr:nth-child(even) td{background:#f7fafc;}
+
+  /* ---- Jeu 1 : tri des formes ---- */
+  .jeu-wrap{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:20px;
+    margin-top:16px;
+  }
+  .piece-bank{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    padding:14px;
+    background:#f5f8fb;
+    border:1px dashed #bcd0e0;
+    border-radius:8px;
+    margin-bottom:20px;
+    min-height:70px;
+  }
+  .piece{
+    background:white;
+    border:2px solid var(--blue);
+    border-radius:8px;
+    padding:6px 10px;
+    text-align:center;
+    cursor:pointer;
+    user-select:none;
+    transition:transform 0.15s, box-shadow 0.15s;
+  }
+  .piece svg{width:80px;height:40px;display:block;margin:0 auto;}
+  .piece span{font-size:0.78em;font-weight:600;color:var(--navy);}
+  .piece:hover{box-shadow:0 2px 6px rgba(0,0,0,0.12);}
+  .piece.selected{
+    border-color:var(--teal);
+    box-shadow:0 0 0 3px rgba(47,143,138,0.25);
+    transform:translateY(-2px);
+  }
+  .bins{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+  }
+  .bin{
+    background:#fbfdff;
+    border:2px solid var(--border);
+    border-radius:10px;
+    padding:12px;
+    min-height:160px;
+  }
+  .bin h4{
+    margin:0 0 10px 0;
+    text-align:center;
+    color:var(--navy);
+    border-bottom:2px solid var(--blue);
+    padding-bottom:6px;
+  }
+  .bin.shake{animation:shake 0.35s;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-6px);}
+    75%{transform:translateX(6px);}
+  }
+  .bin .placed-piece{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--ok-bg);
+    border:1px solid #b7dfc4;
+    border-radius:6px;
+    padding:4px 8px;
+    margin:3px;
+    font-size:0.82em;
+    color:#1e5c37;
+  }
+  .bin .placed-piece svg{width:36px;height:20px;}
+  .progress-line{
+    margin-top:14px;
+    font-weight:600;
+    color:var(--navy);
+  }
+  .success-msg{
+    display:none;
+    margin-top:16px;
+    background:var(--ok-bg);
+    border:1px solid #b7dfc4;
+    color:#1e5c37;
+    padding:12px 16px;
+    border-radius:8px;
+    font-weight:600;
+  }
+
+  /* ---- Jeu 2 : association ---- */
+  .match-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:30px;
+    margin-top:18px;
+  }
+  .match-col h4{text-align:center;color:var(--navy);}
+  .match-item{
+    background:white;
+    border:2px solid var(--border);
+    border-radius:8px;
+    padding:10px 14px;
+    margin-bottom:10px;
+    cursor:pointer;
+    user-select:none;
+    font-size:0.92em;
+    transition:all 0.15s;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .match-item svg{width:56px;height:28px;flex-shrink:0;}
+  .match-item:hover{border-color:var(--blue);}
+  .match-item.selected{border-color:var(--blue);background:var(--blue-light);box-shadow:0 0 0 3px rgba(47,123,176,0.25);}
+  .match-item.matched{
+    border-color:#b7dfc4;
+    background:var(--ok-bg);
+    color:#1e5c37;
+    cursor:default;
+    opacity:0.85;
+  }
+  .match-item.wrong-flash{animation:flashred 0.4s;}
+  @keyframes flashred{
+    0%,100%{background:white;}
+    50%{background:var(--bad-bg);border-color:var(--bad);}
+  }
+
+  /* ---- Jeu 3 : quelle forme ---- */
+  table.jeu3-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:18px;
+    background:white;
+  }
+  table.jeu3-table th{
+    background:var(--navy);
+    color:white;
+    padding:9px 10px;
+    text-align:left;
+  }
+  table.jeu3-table td{
+    padding:8px 10px;
+    border-bottom:1px solid var(--border);
+    vertical-align:middle;
+  }
+  table.jeu3-table tr:nth-child(even) td{background:#f7fafc;}
+  table.jeu3-table select{
+    padding:5px 8px;
+    border-radius:6px;
+    border:1px solid #aac2d4;
+    font-size:0.92em;
+    min-width:280px;
+  }
+  table.jeu3-table select.correct{border:2px solid var(--ok);background:var(--ok-bg);}
+  table.jeu3-table select.incorrect{border:2px solid var(--bad);background:var(--bad-bg);}
+
+  .btn{
+    display:inline-block;
+    margin-top:16px;
+    background:var(--navy);
+    color:white;
+    border:none;
+    padding:10px 22px;
+    border-radius:6px;
+    font-size:0.95em;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .btn:hover{background:var(--blue);}
+  .jeu3-result{
+    margin-top:14px;
+    font-weight:600;
+    color:var(--navy);
+  }
+
+  .answer-key{
+    margin-top:50px;
+    border:2px dashed var(--teal);
+    border-radius:10px;
+    padding:20px;
+    background:#f0faf8;
+  }
+  .answer-key h2{
+    color:var(--teal);
+    border-bottom:2px solid var(--teal);
+    margin-top:0;
+  }
+
+  .hidden{display:none !important;}
+  .toggle-btn{
+    display:inline-block;
+    margin-top:15px;
+    margin-right:10px;
+    padding:8px 16px;
+    background:var(--teal);
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:0.95em;
+  }
+  .toggle-btn.secondary{background:var(--navy);}
+  .lock-bar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    background:#e6f6f4;
+    border:1px dashed var(--teal);
+    border-radius:8px;
+    padding:14px 18px;
+    color:var(--teal);
+    font-weight:600;
+  }
+  .unlock-form{display:flex;gap:8px;align-items:center;}
+  .unlock-form input[type="password"]{
+    border:1px solid #a9d8d3;
+    border-radius:6px;
+    padding:6px 10px;
+    font-size:0.95em;
+    min-width:160px;
+  }
+  .unlock-form .toggle-btn{margin:0;}
+  .pwd-hint{
+    color:#e6f6f4;
+    background:#e6f6f4;
+    user-select:all;
+    -webkit-user-select:all;
+    font-size:0.85em;
+    padding:2px 8px;
+    border-radius:4px;
+    cursor:text;
+  }
+  .pwd-hint::selection{background:#39383a;color:#fff;}
+  .pwd-hint::-moz-selection{background:#39383a;color:#fff;}
+  .relock-btn{
+    float:right;
+    font-size:0.8em;
+    padding:5px 12px;
+  }
+</style>
+<style>
+#sn-bar{font:14px/1.4 "Segoe UI",Arial,sans-serif;background:#1d3a52;color:#fff;margin:0;padding:8px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;box-sizing:border-box;position:relative;z-index:30;}
+#sn-bar *{box-sizing:border-box;}
+#sn-bar a{color:#fff;text-decoration:none;font-weight:600;padding:5px 11px;border-radius:7px;background:rgba(255,255,255,.12);white-space:nowrap;}
+#sn-bar a:hover{background:rgba(255,255,255,.26);}
+#sn-bar .sn-cur{opacity:.85;font-size:.92em;margin-right:auto;}
+#sn-bar details{position:relative;}
+#sn-bar summary{cursor:pointer;list-style:none;font-weight:600;padding:5px 11px;border-radius:7px;background:rgba(255,255,255,.12);user-select:none;}
+#sn-bar summary::-webkit-details-marker{display:none;}
+#sn-bar summary:hover,#sn-bar details[open] summary{background:rgba(255,255,255,.26);}
+#sn-bar .sn-menu{position:absolute;right:0;top:calc(100% + 6px);width:min(430px,92vw);max-height:75vh;overflow:auto;background:#fff;color:#1d2b36;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);padding:8px 0;z-index:40;}
+#sn-bar .sn-menu a{display:block;background:none;color:#1d3a52;border-radius:0;padding:6px 16px;white-space:normal;font-weight:500;}
+#sn-bar .sn-menu a:hover{background:#e8f1f8;}
+#sn-bar .sn-menu a.on{background:#dcebf6;font-weight:700;}
+#sn-bar .sn-menu .sn-co{margin:6px 0 8px 12px;border-left:6px solid var(--cc,#5b7183);}
+#sn-bar .sn-menu b{display:block;padding:4px 16px 2px;color:var(--cn,#5b7183);font-size:.8em;text-transform:uppercase;letter-spacing:.04em;}
+#sn-bar .sn-menu .sn-co a:hover{background:var(--cl,#e8f1f8);}
+#sn-bar .sn-menu .sn-co a.on{background:var(--cl,#dcebf6);font-weight:700;}
+#sn-bar .sn-menu small{display:inline-block;margin-right:8px;background:#2a9d8f;color:#fff;border-radius:5px;padding:1px 8px;text-align:center;font-size:.8em;font-weight:600;white-space:nowrap;}
+#sn-bar .sn-menu small.sn-nt{background:#1d3a52;}
+#sn-bar .sn-menu small.sn-lab{background:#8a5a9a;}
+@media print{#sn-bar{display:none !important;}}
+</style>
+</head>
+<body>
+<div id="sn-bar" style="background:#0c3446;border-bottom:5px solid #166082"><span class="sn-cur">101-813-MA · Activité 4.1</span><a href="../index.html">← Accueil</a><a href="../cours4/notes.html">Notes du cours 4</a><details><summary>☰ Tout le site</summary><div class="sn-menu"><div class="sn-co" style="--cc:#e0d8b8;--co:#1c2b36;--cn:#564e2e;--cd:#35311d;--cl:#f6f5ee"><b>Cours 1 · Introduction à la biologie</b><a href="../cours1/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours1/activite_cours1.1_microorganismes.html"><small>Activité 1.1</small>Diversité des microorganismes</a></div><div class="sn-co" style="--cc:#0070c0;--co:#ffffff;--cn:#00528d;--cd:#003357;--cl:#ebf3f9"><b>Cours 2 · Les molécules du vivant</b><a href="../cours2/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours2/activite_cours2.1_macronutriments.html"><small>Activité 2.1</small>Glucides, lipides et protéines</a></div><div class="sn-co" style="--cc:#b3a2ba;--co:#1c2b36;--cn:#5a4861;--cd:#382d3c;--cl:#f3f0f4"><b>Cours 3 · Le modèle cellulaire et l'écologie microbienne</b><a href="../cours3/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a></div><div class="sn-co" style="--cc:#166082;--co:#ffffff;--cn:#135371;--cd:#0c3446;--cl:#ebf5f9"><b>Cours 4 · Les bactéries</b><a href="../cours4/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours4/activite_cours4.1_bacteries.html" class="on"><small>Activité 4.1</small>Les bactéries : formes et pathogènes alimentaires</a></div><div class="sn-co" style="--cc:#2d9d9f;--co:#ffffff;--cn:#195657;--cd:#0f3636;--cl:#ebf9f9"><b>Cours 5 · Les mycètes</b><a href="../cours5/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours5/activite_cours5.1_qui_pousse_ou.html"><small>Activité 5.1</small>Qui pousse où ? pH et température</a><a href="../cours5/activite_cours5.2_bacteries_vs_mycetes.html"><small>Activité 5.2</small>Bactéries ou mycètes ?</a><a href="../cours5/activite_cours5.3_enquete.html"><small>Activité 5.3</small>Enquête : aliment altéré ou intoxication ?</a></div><div class="sn-co" style="--cc:#c32423;--co:#ffffff;--cn:#9c1d1c;--cd:#611211;--cl:#f9ebeb"><b>Cours 6 · Les virus et autres parasites</b><a href="../cours6/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours6/activite_cours6.1_parasitisme_et_groupes.html"><small>Activité 6.1</small>Parasitisme et groupes d'organismes</a><a href="../cours6/activite_cours6.2_virus.html"><small>Activité 6.2</small>Les virus, de la cellule à l'assiette</a><a href="../cours6/activite_cours6.3_vers_parasites.html"><small>Activité 6.3</small>Les vers parasites, de l'assiette à l'organisme</a></div><div class="sn-co" style="--cc:#d9822b;--co:#1c2b36;--cn:#754515;--cd:#482b0d;--cl:#f9f2eb"><b>Cours 7 · La qualité : échantillonnage et normes</b><a href="../cours7/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours7/activite_cours7.1_danger_et_prelevement.html"><small>Activité 7.1</small>Danger, échantillon et prélèvement</a><a href="../cours7/activite_cours7.2_les_normes.html"><small>Activité 7.2</small>Lire une norme microbiologique</a><a href="../cours7/activite_cours7.3_dilutions.html"><small>Activité 7.3</small>Comprendre les dilutions</a></div><div class="sn-co" style="--cc:#5b8c3e;--co:#ffffff;--cn:#395727;--cd:#233618;--cl:#f1f7ed"><b>Cours 8 · La qualité : indicateurs et identification</b><a href="../cours8/notes.html"><small class="sn-nt">Notes</small>Notes de cours</a><a href="../cours8/activite_cours8.1_indicateurs.html"><small>Activité 8.1</small>Les organismes indicateurs</a><a href="../cours8/activite_cours8.2_identifier.html"><small>Activité 8.2</small>Identifier un microorganisme</a></div><div class="sn-co" style="--cc:#8a5a9a;--co:#fff;--cn:#6d4479;--cd:#6d4479;--cl:#f3ecf6"><b>🔬 Laboratoires</b><a href="../labos/fiches-labos.html"><small class="sn-lab">🧪 Labos</small>Fiches de mise en contexte des laboratoires</a></div></div></details></div>
+
+
+<header>
+  <h1>Travaux Dirigés : Les bactéries — morphologie et pathogènes alimentaires</h1>
+  <p>101-813-MA — Introduction à la microbiologie alimentaire</p>
+</header>
+
+<div class="container">
+  <p class="instructions">
+    <b>Avant de commencer :</b> ces trois jeux reprennent le contenu vu en classe sur la morphologie bactérienne et sur les pathogènes alimentaires. Gardez vos notes de cours à portée de main au besoin.
+  </p>
+
+  <h2 class="section-title">Jeu 1 — Le tri des formes bactériennes</h2>
+  <p class="instructions">Les bactéries se classent en trois grandes familles selon leur forme : les <b>coques</b> (sphériques), les <b>bacilles</b> (en bâtonnets) et les <b>formes particulières</b> (« autres »). Cliquez sur une pièce ci-dessous, puis cliquez sur la famille où vous pensez qu'elle appartient. Si c'est correct, la pièce se place dans la case ; sinon, la case tremble et vous pouvez réessayer.</p>
+  <div class="jeu-wrap">
+    <div class="piece-bank" id="piece-bank"></div>
+    <div class="bins">
+      <div class="bin" data-fam="coque"><h4>Coques</h4><div class="bin-content"></div></div>
+      <div class="bin" data-fam="bacille"><h4>Bacilles</h4><div class="bin-content"></div></div>
+      <div class="bin" data-fam="autre"><h4>Autres formes</h4><div class="bin-content"></div></div>
+    </div>
+    <div class="progress-line" id="jeu1-progress">0 / 19 formes placées</div>
+    <div class="success-msg" id="jeu1-success">🎉 Bravo, toutes les formes sont correctement classées !</div>
+  </div>
+
+  <div class="answer-key" id="answerKey1">
+    <div class="lock-bar" id="lockBar1">
+      <span>🔒 Corrections masquées — réservées à l'enseignant</span>
+      <div class="unlock-form">
+        <input type="password" id="pwdInput1" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')tryUnlock('1')">
+        <button class="toggle-btn" onclick="tryUnlock('1')">Afficher</button>
+        <span class="pwd-hint" title="Surlignez pour révéler">formes24</span>
+      </div>
+    </div>
+    <div class="answer-body hidden" id="answerBody1">
+    <button class="toggle-btn secondary relock-btn" onclick="relock('1')">🔒 Masquer à nouveau</button>
+    <h2>Feuille de correction — Jeu 1 (enseignant)</h2>
+    <p>Répartition attendue des 19 formes dans les trois familles :</p>
+    <table class="pathogen-ref">
+      <thead><tr><th>Coques (6)</th><th>Bacilles (7)</th><th>Autres formes (6)</th></tr></thead>
+      <tbody>
+        <tr><td>Coque simple</td><td>Bacille à bout droit</td><td>Fusiforme</td></tr>
+        <tr><td>Diplocoque</td><td>Bacille à bout effilé</td><td>Hélicoïdale</td></tr>
+        <tr><td>Streptocoque</td><td>Coccobacille</td><td>En massue</td></tr>
+        <tr><td>Tétrade</td><td>Diplobacille</td><td>Spirale</td></tr>
+        <tr><td>Sarcine</td><td>Vibrion</td><td>Spirochète</td></tr>
+        <tr><td>Staphylocoque</td><td>Palissade</td><td>Filamenteuse</td></tr>
+        <tr><td></td><td>Streptobacille</td><td></td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.85em;color:#888;margin-top:10px;">Le jeu n'accepte une pièce dans une case que si la famille est correcte (aucune sous-catégorie n'est demandée à cette étape) ; une pièce déposée dans la mauvaise case fait simplement trembler la case, sans limite de tentatives.</p>
+    </div>
+  </div>
+
+  <h2 class="section-title">Jeu 2 — Association forme ↔ maladie</h2>
+  <p class="instructions">Cliquez sur une forme bactérienne dans la colonne de gauche, puis sur la maladie qui lui correspond dans la colonne de droite. Une bonne paire se colore en vert et se verrouille ; une mauvaise paire clignote en rouge.</p>
+  <div class="jeu-wrap">
+    <div class="match-grid">
+      <div class="match-col"><h4>Formes</h4><div id="match-shapes"></div></div>
+      <div class="match-col"><h4>Maladies / exemples</h4><div id="match-diseases"></div></div>
+    </div>
+    <div class="progress-line" id="jeu2-progress">0 / 12 paires trouvées</div>
+    <div class="success-msg" id="jeu2-success">🎉 Bravo, toutes les paires sont associées !</div>
+  </div>
+
+  <div class="answer-key" id="answerKey2">
+    <div class="lock-bar" id="lockBar2">
+      <span>🔒 Corrections masquées — réservées à l'enseignant</span>
+      <div class="unlock-form">
+        <input type="password" id="pwdInput2" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')tryUnlock('2')">
+        <button class="toggle-btn" onclick="tryUnlock('2')">Afficher</button>
+        <span class="pwd-hint" title="Surlignez pour révéler">maladies24</span>
+      </div>
+    </div>
+    <div class="answer-body hidden" id="answerBody2">
+    <button class="toggle-btn secondary relock-btn" onclick="relock('2')">🔒 Masquer à nouveau</button>
+    <h2>Feuille de correction — Jeu 2 (enseignant)</h2>
+    <table class="pathogen-ref">
+      <thead><tr><th>Forme</th><th>Maladie / exemple</th></tr></thead>
+      <tbody>
+        <tr><td>Diplocoque</td><td>Pneumonie</td></tr>
+        <tr><td>Streptocoque</td><td>Angine / maux de gorge</td></tr>
+        <tr><td>Tétrade</td><td>Odeurs sous les aisselles</td></tr>
+        <tr><td>Staphylocoque</td><td>Sinusites, intoxications alimentaires</td></tr>
+        <tr><td>Coccobacille</td><td>Otites, méningites, coqueluche</td></tr>
+        <tr><td>Bacille à bout droit</td><td>Botulisme, gastroentérite</td></tr>
+        <tr><td>Vibrion</td><td>Choléra</td></tr>
+        <tr><td>Fusiforme</td><td>Gingivite</td></tr>
+        <tr><td>Hélicoïdale</td><td>Ulcères gastriques, gastrite</td></tr>
+        <tr><td>En massue</td><td>Diphtérie</td></tr>
+        <tr><td>Spirale</td><td>Fièvre par morsure de rat</td></tr>
+        <tr><td>Filamenteuse</td><td>Produit des antibiotiques</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.85em;color:#888;margin-top:10px;">Ces 12 paires sont les seules qui comportent un exemple explicite dans vos diapositives ; les 7 autres formes (coque simple, sarcine, bacille à bout effilé, diplobacille, palissade, streptobacille, spirochète) n'ont volontairement pas été incluses ici puisqu'aucun exemple clinique ne leur était associé dans le contenu fourni.</p>
+    </div>
+  </div>
+
+  <h2 class="section-title">Jeu 3 — Quelle forme ont nos pathogènes alimentaires ?</h2>
+  <p class="instructions">Pour chaque microorganisme ci-dessous, choisissez la forme bactérienne qui lui correspond. Attention : deux d'entre eux ne sont pas des bactéries du tout ! Cliquez sur « Vérifier mes réponses » une fois la table complétée.</p>
+  <div class="jeu-wrap">
+    <table class="jeu3-table">
+      <thead><tr><th>Microorganisme</th><th>Quelle forme a-t-il ?</th></tr></thead>
+      <tbody id="jeu3-body"></tbody>
+    </table>
+    <button class="btn" id="jeu3-check">Vérifier mes réponses</button>
+    <div class="jeu3-result" id="jeu3-result"></div>
+  </div>
+
+  <div class="answer-key" id="answerKey3">
+    <div class="lock-bar" id="lockBar3">
+      <span>🔒 Corrections masquées — réservées à l'enseignant</span>
+      <div class="unlock-form">
+        <input type="password" id="pwdInput3" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')tryUnlock('3')">
+        <button class="toggle-btn" onclick="tryUnlock('3')">Afficher</button>
+        <span class="pwd-hint" title="Surlignez pour révéler">pathogenes24</span>
+      </div>
+    </div>
+    <div class="answer-body hidden" id="answerBody3">
+    <button class="toggle-btn secondary relock-btn" onclick="relock('3')">🔒 Masquer à nouveau</button>
+    <h2>Feuille de correction — Jeu 3 (enseignant)</h2>
+    <table class="pathogen-ref">
+      <thead><tr><th>Microorganisme</th><th>Forme attendue</th><th>Justification</th></tr></thead>
+      <tbody>
+        <tr><td>Bactéries lactiques</td><td>Variable</td><td>Groupe hétérogène : certains genres sont des coques (<i>Streptococcus</i>, <i>Leuconostoc</i>, <i>Pediococcus</i>), d'autres des bacilles (<i>Lactobacillus</i>).</td></tr>
+        <tr><td>Bactéries acétiques</td><td>Bacille</td><td><i>Acetobacter</i> et <i>Gluconobacter</i> sont des bâtonnets (parfois ovoïdes).</td></tr>
+        <tr><td>Pseudomonas</td><td>Bacille</td><td>Bâtonnet droit, parfois légèrement incurvé.</td></tr>
+        <tr><td>Entérobactéries</td><td>Bacille</td><td>Toute la famille des entérobactéries (dont <i>E. coli</i> et <i>Salmonella</i>) regroupe des bacilles droits.</td></tr>
+        <tr><td>Salmonella</td><td>Bacille</td><td>Bacille droit, mobile, Gram négatif.</td></tr>
+        <tr><td>E. coli</td><td>Bacille</td><td>Bacille droit, Gram négatif — entérobactérie typique.</td></tr>
+        <tr><td>Staphylococcus aureus</td><td>Coque</td><td>Coque en grappes (le nom « staphylo » vient du grec « grappe de raisin »).</td></tr>
+        <tr><td>Listeria monocytogenes</td><td>Bacille</td><td>Petit bacille droit, Gram positif.</td></tr>
+        <tr><td>Clostridium botulinum</td><td>Bacille</td><td>Bacille sporulé, anaérobie strict.</td></tr>
+        <tr><td>Clostridium perfringens</td><td>Bacille</td><td>Bacille sporulé, comme tous les <i>Clostridium</i>.</td></tr>
+        <tr><td>Bacillus cereus</td><td>Bacille</td><td>Le nom de genre « Bacillus » signifie littéralement « petit bâton ».</td></tr>
+        <tr><td>Levures</td><td>Pas une bactérie</td><td>Ce sont des champignons (eucaryotes unicellulaires) — piège volontaire pour rappeler la distinction entre bactéries et champignons (cours 1).</td></tr>
+        <tr><td>Moisissures</td><td>Pas une bactérie</td><td>Ce sont aussi des champignons (filamenteux) — même remarque que pour les levures.</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.85em;color:#888;margin-top:10px;"><b>Note de transparence :</b> contrairement aux Jeux 1 et 2 (basés directement sur vos diapositives), les formes exactes des pathogènes du Jeu 3 relèvent de connaissances générales de microbiologie (non explicitement énoncées dans le contenu fourni). Elles sont bien établies et standards dans la littérature, mais vous pourriez vouloir les ajuster ou les nuancer selon le niveau de précision souhaité pour votre groupe — en particulier pour les « bactéries lactiques », un groupe volontairement présenté comme hétérogène.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Gradient définition partagée par toutes les icônes -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="bactgrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5aa3d4"/>
+      <stop offset="100%" stop-color="#1f6a9c"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<script>
+const STROKE = '#0f3552';
+const FILL = 'url(#bactgrad)';
+
+const SHAPES = [
+  { id:'coque_simple', family:'coque', name:'Coque simple', desc:'Une bactérie sphérique isolée.', disease:null,
+    svg:`<circle cx="80" cy="40" r="17" fill="${FILL}" stroke="${STROKE}" stroke-width="2"/>` },
+  { id:'diplocoque', family:'coque', name:'Diplocoque', desc:'Deux coques regroupés par paire.', disease:'Pneumonie',
+    svg:`<circle cx="63" cy="40" r="15" fill="${FILL}" stroke="${STROKE}" stroke-width="2"/><circle cx="97" cy="40" r="15" fill="${FILL}" stroke="${STROKE}" stroke-width="2"/>` },
+  { id:'streptocoque', family:'coque', name:'Streptocoque', desc:'Coques alignés en chaîne.', disease:'Angine / maux de gorge',
+    svg:[18,40,62,84,106,128,148].map(x=>`<circle cx="${x}" cy="40" r="10" fill="${FILL}" stroke="${STROKE}" stroke-width="2"/>`).join('') },
+  { id:'tetrade', family:'coque', name:'Tétrade', desc:'Coques regroupés en carré de 4.', disease:'Odeurs sous les aisselles',
+    svg:[[64,27],[96,27],[64,53],[96,53]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="13" fill="${FILL}" stroke="${STROKE}" stroke-width="2"/>`).join('') },
+  { id:'sarcine', family:'coque', name:'Sarcine', desc:'Coques regroupés en paquet cubique de 8.', disease:null,
+    svg:[[42,30],[60,30],[78,30],[96,30],[51,52],[69,52],[87,52],[105,52]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="10" fill="${FILL}" stroke="${STROKE}" stroke-width="1.6"/>`).join('') },
+  { id:'staphylocoque', family:'coque', name:'Staphylocoque', desc:'Coques regroupés en grappe irrégulière.', disease:'Sinusites, intoxications alimentaires',
+    svg:[[70,26],[90,24],[108,32],[60,42],[80,44],[100,48],[68,58],[90,60]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="11" fill="${FILL}" stroke="${STROKE}" stroke-width="1.6"/>`).join('') },
+
+  { id:'bacille_droit', family:'bacille', name:'Bacille à bout droit', desc:'Bâtonnet aux extrémités droites, isolé.', disease:'Botulisme, gastroentérite',
+    svg:`<rect x="55" y="28" width="50" height="24" rx="4" fill="${FILL}" stroke="${STROKE}" stroke-width="2"/>` },
+  { id:'bacille_effile', family:'bacille', name:'Bacille à bout effilé', desc:'Bâtonnet aux extrémités pointues, isolé.', disease:null,
+    svg:`<polygon points="25,40 48,29 112,29 135,40 112,51 48,51" fill="${FILL}" stroke="${STROKE}" stroke-width="2"/>` },
+  { id:'coccobacille', family:'bacille', name:'Coccobacille', desc:'Bâtonnet très court, presque rond.', disease:'Otites, méningites, coqueluche',
+    svg:`<rect x="63" y="26" width="34" height="28" rx="13" fill="${FILL}" stroke="${STROKE}" stroke-width="2"/>` },
+  { id:'diplobacille', family:'bacille', name:'Diplobacille', desc:'Deux bacilles regroupés par paire.', disease:null,
+    svg:`<rect x="30" y="29" width="46" height="22" rx="6" fill="${FILL}" stroke="${STROKE}" stroke-width="2"/><rect x="82" y="29" width="46" height="22" rx="6" fill="${FILL}" stroke="${STROKE}" stroke-width="2"/>` },
+  { id:'vibrion', family:'bacille', name:'Vibrion', desc:'Bâtonnet courbé, en forme de virgule.', disease:'Choléra',
+    svg:`<path d="M45,58 Q35,20 100,24 Q125,26 118,42" fill="none" stroke="${STROKE}" stroke-width="15" stroke-linecap="round"/><path d="M45,58 Q35,20 100,24 Q125,26 118,42" fill="none" stroke="${FILL}" stroke-width="11" stroke-linecap="round"/>` },
+  { id:'palissade', family:'bacille', name:'Palissade', desc:'Bacilles alignés côte à côte, comme une clôture.', disease:null,
+    svg:[24,52,80,108,134].map(x=>`<rect x="${x-8}" y="14" width="16" height="52" rx="8" fill="${FILL}" stroke="${STROKE}" stroke-width="1.6"/>`).join('') },
+  { id:'streptobacille', family:'bacille', name:'Streptobacille', desc:'Bacilles bout à bout, en chaîne.', disease:null,
+    svg:[14,42,70,98].map(x=>`<rect x="${x}" y="31" width="26" height="18" rx="9" fill="${FILL}" stroke="${STROKE}" stroke-width="1.6"/>`).join('') },
+
+  { id:'fusiforme', family:'autre', name:'Fusiforme', desc:'Forme effilée aux deux extrémités, en fuseau.', disease:'Gingivite',
+    svg:`<path d="M18,40 Q80,16 142,40 Q80,64 18,40 Z" fill="${FILL}" stroke="${STROKE}" stroke-width="2"/>` },
+  { id:'helicoidale', family:'autre', name:'Hélicoïdale', desc:'Hélice régulière et rigide, à tours serrés.', disease:'Ulcères gastriques, gastrite',
+    svg:`<path d="M18,40 C26,16 34,64 42,40 C50,16 58,64 66,40 C74,16 82,64 90,40 C98,16 106,64 114,40 C120,24 126,56 132,44" fill="none" stroke="${STROKE}" stroke-width="11" stroke-linecap="round"/><path d="M18,40 C26,16 34,64 42,40 C50,16 58,64 66,40 C74,16 82,64 90,40 C98,16 106,64 114,40 C120,24 126,56 132,44" fill="none" stroke="${FILL}" stroke-width="7" stroke-linecap="round"/>` },
+  { id:'massue', family:'autre', name:'En massue', desc:'Renflée à une extrémité, comme une quille.', disease:'Diphtérie',
+    svg:`<path d="M28,40 Q28,29 42,29 L95,24 Q136,24 136,40 Q136,56 95,56 L42,51 Q28,51 28,40 Z" fill="${FILL}" stroke="${STROKE}" stroke-width="2"/>` },
+  { id:'spirale', family:'autre', name:'Spirale', desc:'Spirale rigide, à quelques grands tours (spirille).', disease:'Fièvre par morsure de rat',
+    svg:`<path d="M16,40 Q42,6 68,40 Q94,74 120,40 Q133,22 144,32" fill="none" stroke="${STROKE}" stroke-width="11" stroke-linecap="round"/><path d="M16,40 Q42,6 68,40 Q94,74 120,40 Q133,22 144,32" fill="none" stroke="${FILL}" stroke-width="7" stroke-linecap="round"/>` },
+  { id:'spirochete', family:'autre', name:'Spirochète', desc:'Longue spirale fine et flexible, à nombreux tours.', disease:null,
+    svg:`<path d="M12,40 Q20,24 28,40 Q36,56 44,40 Q52,24 60,40 Q68,56 76,40 Q84,24 92,40 Q100,56 108,40 Q116,24 124,40 Q132,56 140,40 Q145,32 150,36" fill="none" stroke="${STROKE}" stroke-width="6" stroke-linecap="round"/><path d="M12,40 Q20,24 28,40 Q36,56 44,40 Q52,24 60,40 Q68,56 76,40 Q84,24 92,40 Q100,56 108,40 Q116,24 124,40 Q132,56 140,40 Q145,32 150,36" fill="none" stroke="${FILL}" stroke-width="3.4" stroke-linecap="round"/>` },
+  { id:'filamenteuse', family:'autre', name:'Filamenteuse', desc:'Longs filaments fins, parfois ramifiés.', disease:'Produit des antibiotiques',
+    svg:`<path d="M12,48 Q45,22 78,46 Q112,64 148,32" fill="none" stroke="${STROKE}" stroke-width="5" stroke-linecap="round"/><path d="M12,48 Q45,22 78,46 Q112,64 148,32" fill="none" stroke="${FILL}" stroke-width="3" stroke-linecap="round"/><path d="M58,36 L44,15" stroke="${STROKE}" stroke-width="3.5" stroke-linecap="round"/><path d="M58,36 L44,15" stroke="${FILL}" stroke-width="1.8" stroke-linecap="round"/><path d="M100,54 L116,72" stroke="${STROKE}" stroke-width="3.5" stroke-linecap="round"/><path d="M100,54 L116,72" stroke="${FILL}" stroke-width="1.8" stroke-linecap="round"/>` },
+];
+
+const PATHOGENS = [
+  { name:'Bactéries lactiques', cat:'U', physio:'Mésophiles (certaines souches tolèrent le froid). Fermentent les sucres en acide lactique.', aliments:'Yaourts, fromages, charcuteries, légumes lacto-fermentés', shape:'variable', shapeLabel:'Variable (coques ou bacilles selon le genre)' },
+  { name:'Bactéries acétiques', cat:'U', physio:'Mésophiles, aérobies. Oxydent l’éthanol en acide acétique.', aliments:'Vinaigre ; altération de boissons alcoolisées, kombucha', shape:'bacille', shapeLabel:'Bacille' },
+  { name:'Pseudomonas', cat:'A', physio:'Psychrotrophe. Altération de surface rapide.', aliments:'Viandes, poissons, produits laitiers, légumes réfrigérés', shape:'bacille', shapeLabel:'Bacille' },
+  { name:'Entérobactéries', cat:'A/P', physio:'Mésophiles. Indicateur d’hygiène générale.', aliments:'Viandes, volailles, œufs, produits laitiers non pasteurisés', shape:'bacille', shapeLabel:'Bacille' },
+  { name:'Salmonella', cat:'P', physio:'Mésophile. Entérobactérie pathogène.', aliments:'Volailles, œufs et dérivés, viandes hachées', shape:'bacille', shapeLabel:'Bacille' },
+  { name:'E. coli', cat:'P', physio:'Mésophile. Sérotypes EHEC pathogènes.', aliments:'Viandes hachées, lait cru, contamination fécale', shape:'bacille', shapeLabel:'Bacille' },
+  { name:'Staphylococcus aureus', cat:'P', physio:'Mésophile. Produit une entérotoxine thermostable.', aliments:'Produits crémeux, salades mixtes, charcuteries', shape:'coque', shapeLabel:'Coque' },
+  { name:'Listeria monocytogenes', cat:'P', physio:'Psychrotrophe. Capable de croître sous réfrigération.', aliments:'Charcuteries, poissons fumés, fromages à pâte molle', shape:'bacille', shapeLabel:'Bacille' },
+  { name:'Clostridium botulinum', cat:'P', physio:'Mésophile. Anaérobie stricte, sporulée, toxine botulique.', aliments:'Conserves mal thermisées, aliments sous vide, miel', shape:'bacille', shapeLabel:'Bacille' },
+  { name:'Clostridium perfringens', cat:'P', physio:'Mésophile. Sporulée, toxine produite après ingestion.', aliments:'Plats de viande en sauce, ragoûts refroidis lentement', shape:'bacille', shapeLabel:'Bacille' },
+  { name:'Bacillus cereus', cat:'P', physio:'Mésophile / thermotolérante. Toxine émétique ou diarrhéique.', aliments:'Riz et pâtes cuits, plats refroidis lentement', shape:'bacille', shapeLabel:'Bacille' },
+  { name:'Levures', cat:'U', physio:'Mésophile / psychrotrophe. Fermentation alcoolique.', aliments:'Bière, vin, pain (levain), yaourts aux fruits', shape:'nonbact', shapeLabel:'Pas une bactérie (c’est un champignon)' },
+  { name:'Moisissures', cat:'U/A', physio:'Aérobies, tolérantes au froid. Mycotoxines ou affinage.', aliments:'Fruits, légumes, pain (altération) ; fromages bleus (affinage)', shape:'nonbact', shapeLabel:'Pas une bactérie (c’est un champignon)' },
+];
+
+const SHAPE_OPTIONS = [
+  { v:'coque', t:'Coque' },
+  { v:'bacille', t:'Bacille' },
+  { v:'autre', t:'Autre forme' },
+  { v:'variable', t:'Variable (coques ou bacilles selon le genre)' },
+  { v:'nonbact', t:'Pas une bactérie (c’est un champignon)' },
+];
+
+function shapeSvg(s, w, h){
+  return `<svg viewBox="0 0 160 80" style="width:${w}px;height:${h}px">${s.svg}</svg>`;
+}
+
+// ---------- Jeu 1 : tri des formes ----------
+const pieceBank = document.getElementById('piece-bank');
+const shuffledShapes = [...SHAPES].sort(()=>Math.random()-0.5);
+let placedCount = 0;
+let selectedPiece = null;
+
+shuffledShapes.forEach(s=>{
+  const div = document.createElement('div');
+  div.className = 'piece';
+  div.dataset.id = s.id;
+  div.innerHTML = `${shapeSvg(s,80,40)}<span>${s.name}</span>`;
+  div.addEventListener('click', ()=>{
+    if(div.classList.contains('placed')) return;
+    document.querySelectorAll('.piece.selected').forEach(p=>p.classList.remove('selected'));
+    div.classList.add('selected');
+    selectedPiece = s;
+  });
+  pieceBank.appendChild(div);
+  s._pieceEl = div;
+});
+
+document.querySelectorAll('.bin').forEach(bin=>{
+  bin.addEventListener('click', ()=>{
+    if(!selectedPiece) return;
+    if(selectedPiece.family === bin.dataset.fam){
+      selectedPiece._pieceEl.remove();
+      const placed = document.createElement('span');
+      placed.className = 'placed-piece';
+      placed.innerHTML = `${shapeSvg(selectedPiece,36,20)}${selectedPiece.name}`;
+      bin.querySelector('.bin-content').appendChild(placed);
+      placedCount++;
+      document.getElementById('jeu1-progress').textContent = placedCount+' / 19 formes placées';
+      if(placedCount === SHAPES.length){
+        document.getElementById('jeu1-success').style.display = 'block';
+      }
+      selectedPiece = null;
+    } else {
+      bin.classList.remove('shake'); void bin.offsetWidth; bin.classList.add('shake');
+    }
+  });
+});
+
+// ---------- Jeu 2 : association forme <-> maladie ----------
+const diseasePairs = SHAPES.filter(s=>s.disease);
+const shapesShuffled = [...diseasePairs].sort(()=>Math.random()-0.5);
+const diseasesShuffled = [...diseasePairs].sort(()=>Math.random()-0.5);
+
+const matchShapesEl = document.getElementById('match-shapes');
+const matchDiseasesEl = document.getElementById('match-diseases');
+let selShape = null, selDisease = null, matchedCount = 0;
+
+shapesShuffled.forEach(s=>{
+  const div = document.createElement('div');
+  div.className = 'match-item';
+  div.dataset.id = s.id;
+  div.innerHTML = `${shapeSvg(s,56,28)}<span>${s.name}</span>`;
+  div.addEventListener('click', ()=>{
+    if(div.classList.contains('matched')) return;
+    document.querySelectorAll('#match-shapes .match-item').forEach(x=>x.classList.remove('selected'));
+    div.classList.add('selected');
+    selShape = s;
+    tryMatch();
+  });
+  matchShapesEl.appendChild(div);
+  s._matchEl = div;
+});
+
+diseasesShuffled.forEach(s=>{
+  const div = document.createElement('div');
+  div.className = 'match-item';
+  div.dataset.id = s.id;
+  div.innerHTML = `<span>${s.disease}</span>`;
+  div.addEventListener('click', ()=>{
+    if(div.classList.contains('matched')) return;
+    document.querySelectorAll('#match-diseases .match-item').forEach(x=>x.classList.remove('selected'));
+    div.classList.add('selected');
+    selDisease = s;
+    tryMatch();
+  });
+  matchDiseasesEl.appendChild(div);
+  s._diseaseEl = div;
+});
+
+function tryMatch(){
+  if(!selShape || !selDisease) return;
+  const shapeEl = selShape._matchEl, diseaseEl = selDisease._diseaseEl;
+  // On retire l'état "sélectionné" immédiatement, dans les deux cas : une carte
+  // ne doit jamais rester dans un état visuel ambigu pendant/après le flash rouge.
+  shapeEl.classList.remove('selected');
+  diseaseEl.classList.remove('selected');
+  if(selShape.id === selDisease.id){
+    shapeEl.classList.add('matched');
+    diseaseEl.classList.add('matched');
+    matchedCount++;
+    document.getElementById('jeu2-progress').textContent = matchedCount+' / '+diseasePairs.length+' paires trouvées';
+    if(matchedCount === diseasePairs.length){
+      document.getElementById('jeu2-success').style.display = 'block';
+    }
+  } else {
+    shapeEl.classList.add('wrong-flash');
+    diseaseEl.classList.add('wrong-flash');
+    setTimeout(()=>{
+      shapeEl.classList.remove('wrong-flash');
+      diseaseEl.classList.remove('wrong-flash');
+    }, 400);
+  }
+  selShape = null; selDisease = null;
+}
+
+// ---------- Jeu 3 : quelle forme ----------
+const jeu3Body = document.getElementById('jeu3-body');
+PATHOGENS.forEach((p,i)=>{
+  const tr = document.createElement('tr');
+  const options = SHAPE_OPTIONS.map(o=>`<option value="${o.v}">${o.t}</option>`).join('');
+  tr.innerHTML = `<td><i>${p.name}</i></td><td><select id="jeu3-sel-${i}"><option value="">— choisir —</option>${options}</select></td>`;
+  jeu3Body.appendChild(tr);
+});
+
+document.getElementById('jeu3-check').addEventListener('click', ()=>{
+  let correct = 0;
+  PATHOGENS.forEach((p,i)=>{
+    const sel = document.getElementById('jeu3-sel-'+i);
+    sel.classList.remove('correct','incorrect');
+    if(sel.value === p.shape){
+      sel.classList.add('correct');
+      correct++;
+    } else if(sel.value !== ''){
+      sel.classList.add('incorrect');
+    }
+  });
+  document.getElementById('jeu3-result').textContent = correct+' / '+PATHOGENS.length+' réponses correctes.';
+});
+
+// ================= VERROUILLAGE DES CORRECTIONS =================
+// Un mot de passe distinct par jeu pour afficher sa feuille de correction.
+// ⚠️ Le fichier est du HTML/JS ordinaire : un élève qui inspecte le code
+// source (Ctrl+U) ou sélectionne tout le texte de la page peut retrouver
+// ces mots de passe et le contenu masqué. Ce verrou sert seulement à
+// éviter qu'une personne tombe sur les réponses par mégarde en faisant
+// défiler la page.
+const ANSWER_PASSWORDS = {
+  '1': "formes24",      // <-- mot de passe du Jeu 1 (changez-le ici ET dans le <span class="pwd-hint"> correspondant)
+  '2': "maladies24",    // <-- mot de passe du Jeu 2 (idem)
+  '3': "pathogenes24"   // <-- mot de passe du Jeu 3 (idem)
+};
+
+function tryUnlock(id){
+  const input = document.getElementById('pwdInput' + id);
+  if(input.value === ANSWER_PASSWORDS[id]){
+    document.getElementById('lockBar' + id).classList.add('hidden');
+    document.getElementById('answerBody' + id).classList.remove('hidden');
+    input.value = '';
+    sessionStorage.setItem('c4_unlock_' + id, '1');
+  } else {
+    input.value = '';
+    input.placeholder = 'Mot de passe incorrect';
+  }
+}
+
+function relock(id){
+  document.getElementById('answerBody' + id).classList.add('hidden');
+  const bar = document.getElementById('lockBar' + id);
+  bar.classList.remove('hidden');
+  const input = document.getElementById('pwdInput' + id);
+  input.value = '';
+  input.placeholder = 'Mot de passe';
+  sessionStorage.removeItem('c4_unlock_' + id);
+}
+
+// Reste déverrouillé le temps de la session du navigateur, mais se
+// reverrouille à la fermeture de l'onglet. Chaque jeu garde son propre état.
+document.addEventListener('DOMContentLoaded', function(){
+  ['1','2','3'].forEach(function(id){
+    if(sessionStorage.getItem('c4_unlock_' + id) === '1'){
+      const body = document.getElementById('answerBody' + id);
+      const bar = document.getElementById('lockBar' + id);
+      if(body && bar){
+        body.classList.remove('hidden');
+        bar.classList.add('hidden');
+      }
+    }
+  });
+});
+</script>
+
+</body>
+</html>
